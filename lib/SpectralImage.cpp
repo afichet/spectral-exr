@@ -11,6 +11,7 @@
 SpectralImage::SpectralImage(
     size_t width, size_t height,
     const std::vector<float>& wavelengths_nm,
+    SpectrumType type,
     bool containsPolarisationData
 )
     : _width(width)
@@ -18,6 +19,8 @@ SpectralImage::SpectralImage(
     , _wavelengths_nm(wavelengths_nm)
     , _isSpectral(!wavelengths_nm.empty())
     , _containsPolarisationData(containsPolarisationData)
+    , _spectrumType(type)
+
 {
     for (size_t s = 0; s < nStokesComponents(); s++) {
         _pixelBuffers[s].resize(nSpectralBands() * _width * _height);
@@ -54,12 +57,12 @@ const {
 void SpectralImage::getRGBImage(std::vector<float>& rgbImage) 
 const {
     rgbImage.resize(3 * width() * height());
-    SpectrumConverter sc;
+    SpectrumConverter sc((_spectrumType == EMISSIVE_IMAGE) ? SpectrumConverter::EMISSIVE : SpectrumConverter::REFLECTIVE);
     
     std::array<float, 3> rgb;
 
     for (size_t i = 0; i < width() * height(); i++) {
-        sc.spectrumToRgb(
+        sc.spectrumToRGB(
             _wavelengths_nm, 
             &_pixelBuffers[0][nSpectralBands() * i],
             rgb

@@ -11,6 +11,7 @@ class EXRSpectralImage : public SpectralImage {
         EXRSpectralImage(
             size_t width = 0, size_t height = 0,
             const std::vector<float>& wavelengths_nm = std::vector<float>(),
+            SpectrumType type = EMISSIVE_IMAGE,
             bool containsPolarisationData = false
         );
 

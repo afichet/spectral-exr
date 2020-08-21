@@ -5,7 +5,12 @@
 
 class SpectrumConverter {
     public:
-        SpectrumConverter();
+        enum SPECTRUM_TYPE {
+            REFLECTIVE,
+            EMISSIVE
+        };
+
+        SpectrumConverter(SPECTRUM_TYPE type = EMISSIVE);
 
         SpectrumConverter(
             const float& cmfFirstWavelength_nm,
@@ -13,13 +18,13 @@ class SpectrumConverter {
             const std::array<float, 9> xyzToRgb
         );
 
-        void spectrumToXyz(
+        void spectrumToXYZ(
             const std::vector<float>& wavelengths_nm,
             const float* spectrum,
             std::array<float, 3>& XYZ
         ) const;
 
-        void spectrumToRgb(
+        void spectrumToRGB(
             const std::vector<float>& wavelengths_nm,
             const float* spectrum,
             std::array<float, 3>& RGB
@@ -32,8 +37,25 @@ class SpectrumConverter {
         size_t cmfWavelengthValue(size_t index) const;
 
     protected:
+        void emissiveSpectrumToXYZ(
+            const std::vector<float>& wavelengths_nm,
+            const float* spectrum,
+            std::array<float, 3>& XYZ
+        ) const;
+        
+        void reflectiveSpectrumToXYZ(
+            const std::vector<float>& wavelengths_nm,
+            const float* spectrum,
+            std::array<float, 3>& XYZ
+        ) const;
+
+
+        bool _emissiveSpectrum;
+
+        float _illuminantFirstWavelenght_nm;
+        std::vector<float> _illuminantSPD;
+
         float _cmfFirstWavelength_nm;
         std::array<std::vector<float>, 3> _xyzCmfs;
         std::array<float, 9> _xyzToRgb;
-
 };

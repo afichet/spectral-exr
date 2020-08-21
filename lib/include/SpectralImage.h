@@ -14,9 +14,15 @@ class SpectralImage {
             INCORECTED_FORMED_FILE
         };
 
+        enum SpectrumType {
+            REFLECTIVE_IMAGE,
+            EMISSIVE_IMAGE
+        };
+
         SpectralImage(
             size_t width = 0, size_t height = 0,
             const std::vector<float>& wavelengths_nm = std::vector<float>(),
+            SpectrumType type = EMISSIVE_IMAGE,
             bool containsPolarisationData = false
         );
 
@@ -45,4 +51,5 @@ class SpectralImage {
         std::vector<float> _wavelengths_nm;
         bool _isSpectral;
         bool _containsPolarisationData;
+        SpectrumType _spectrumType;
 };

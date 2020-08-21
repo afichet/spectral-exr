@@ -10,9 +10,14 @@ int main(int argc, char* argv[]) {
     const size_t width = 600;
     const size_t height = 400;
 
-    std::vector<float> wavelengths(std::begin(macbeth_wavelengths), std::end(macbeth_wavelengths));
+    std::vector<float> wavelengths(
+        std::begin(macbeth_wavelengths), 
+        std::end(macbeth_wavelengths));
 
-    EXRSpectralImage spectralImage(width, height, wavelengths);
+    EXRSpectralImage spectralImage(
+        width, height, 
+        wavelengths, 
+        SpectralImage::REFLECTIVE_IMAGE);
 
     for (size_t y = 0; y < height; y++) {
         const float v_idx = 4.F * float(y) / float(height);
