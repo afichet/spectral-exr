@@ -7,7 +7,7 @@
 #include <OpenEXR/ImfInputFile.h>
 #include <OpenEXR/ImfOutputFile.h>
 #include <OpenEXR/ImfChannelList.h>
-
+#include <OpenEXR/ImfStringAttribute.h>
 
 EXRSpectralImage::EXRSpectralImage(
     size_t width, size_t height,
@@ -28,6 +28,18 @@ EXRSpectralImage::EXRSpectralImage(
     Imf::InputFile exrIn(filename.c_str());
     const Imf::Header& exrHeader = exrIn.header();
     const Imath::Box2i& exrDataWindow = exrHeader.dataWindow();
+
+    const Imf::StringAttribute * imageTypeAttribute = exrHeader.findTypedAttribute<Imf::StringAttribute>("Spectrum Type");
+
+    if (imageTypeAttribute != nullptr) {
+        if (imageTypeAttribute->value() == "emissive") {
+            _spectrumType = EMISSIVE_IMAGE;
+        } else if (imageTypeAttribute->value() == "reflective") {
+            _spectrumType = REFLECTIVE_IMAGE;
+        } else {
+            throw INCORECTED_FORMED_FILE;
+        }
+    }
 
     _width  = exrDataWindow.max.x - exrDataWindow.min.x + 1;
     _height = exrDataWindow.max.y - exrDataWindow.min.y + 1;
@@ -56,7 +68,7 @@ EXRSpectralImage::EXRSpectralImage(
     }
 
     // Sort by ascending wavelengths
-    for (int s = 0; s < nStokesComponents(); s++) {
+    for (size_t s = 0; s < nStokesComponents(); s++) {
         std::sort(wavelengths_nm_S[s].begin(), wavelengths_nm_S[s].end());
     }
 
@@ -122,6 +134,11 @@ EXRSpectralImage::EXRSpectralImage(
 
 void EXRSpectralImage::save(const std::string& filename) const {
     Imf::Header exrHeader(width(), height());
+    exrHeader.insert("Spectrum Type", 
+        Imf::StringAttribute(
+            (_spectrumType == REFLECTIVE_IMAGE) ? "reflective" : "emissive")
+    );
+
     Imf::ChannelList & exrChannels = exrHeader.channels();
 
     // Layout framebuffer

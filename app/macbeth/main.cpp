@@ -6,6 +6,7 @@
 #include "macbeth_data.h"
 
 int main(int argc, char* argv[]) {
+    (void)argc; (void)argv;
 
     const size_t width = 600;
     const size_t height = 400;
@@ -46,7 +47,7 @@ int main(int argc, char* argv[]) {
                 )
             )
             {
-                for (int wl_idx = 0; wl_idx < spectralImage.nSpectralBands(); wl_idx++) {
+                for (size_t wl_idx = 0; wl_idx < spectralImage.nSpectralBands(); wl_idx++) {
                     spectralImage(x, y, wl_idx) = macbeth_patches[idx][wl_idx];
                 }
             }

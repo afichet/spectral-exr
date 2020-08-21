@@ -70,7 +70,7 @@ EXRBiSpectralImage::EXRBiSpectralImage(
     }
 
     // Sort by ascending wavelengths
-    for (int s = 0; s < nStokesComponents(); s++) {
+    for (size_t s = 0; s < nStokesComponents(); s++) {
         std::sort(diagonal_wavelengths_nm_S[s].begin(), diagonal_wavelengths_nm_S[s].end());
     }
 

@@ -41,6 +41,12 @@ if (OpenEXR_FOUND)
     
     target_link_libraries(EXRSpectralImage PUBLIC ${OpenEXR_LIBRARIES})
 
+    if(MSVC)
+        target_compile_options(EXRSpectralImage PUBLIC /W3)
+    else()
+        target_compile_options(EXRSpectralImage PUBLIC -Wall -Wextra -Wpedantic)
+    endif()
+
     configure_file(EXRSpectralImage.pc.in EXRSpectralImage.pc @ONLY)
 
     install(TARGETS EXRSpectralImage
