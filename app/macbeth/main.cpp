@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    spectralImage.save("macbeth.exr");
+    spectralImage.save("Macbeth.exr");
 
     return 0;
 }

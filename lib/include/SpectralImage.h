@@ -23,13 +23,12 @@ class SpectralImage {
         virtual void save(const std::string& filename) const = 0;
 
         virtual void exportChannels(const std::string& path) const;
+        virtual void getRGBImage(std::vector<float>& rgbImage) const;
 
         size_t width() const { return _width; }
-
         size_t height() const { return _height; }
 
         size_t nSpectralBands() const { return _wavelengths_nm.size(); }
-
         size_t nStokesComponents() const { return (_containsPolarisationData ? 4 : 1); }
 
         float& operator()(

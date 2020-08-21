@@ -6,6 +6,7 @@
 #include <OpenEXR/ImfOutputFile.h>
 #include <OpenEXR/ImfChannelList.h>
 
+#include "SpectrumConverter.h"
 
 SpectralImage::SpectralImage(
     size_t width, size_t height,
@@ -24,7 +25,8 @@ SpectralImage::SpectralImage(
 }
 
 
-void SpectralImage::exportChannels(const std::string& path) const {
+void SpectralImage::exportChannels(const std::string& path) 
+const {
     const size_t xStride = sizeof(float) * nSpectralBands();
     const size_t yStride = xStride * width();
 
@@ -45,6 +47,25 @@ void SpectralImage::exportChannels(const std::string& path) const {
             exrOut.setFrameBuffer(exrFrameBuffer);
             exrOut.writePixels(height());
         }
+    }
+}
+
+
+void SpectralImage::getRGBImage(std::vector<float>& rgbImage) 
+const {
+    rgbImage.resize(3 * width() * height());
+    SpectrumConverter sc;
+    
+    std::array<float, 3> rgb;
+
+    for (size_t i = 0; i < width() * height(); i++) {
+        sc.spectrumToRgb(
+            _wavelengths_nm, 
+            &_pixelBuffers[0][nSpectralBands() * i],
+            rgb
+            );
+
+        memcpy(&rgbImage[3 * i], &rgb[0], 3 * sizeof(float));
     }
 }
 

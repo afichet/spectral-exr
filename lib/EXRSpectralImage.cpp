@@ -125,12 +125,28 @@ void EXRSpectralImage::save(const std::string& filename) const {
 
     // Layout framebuffer
     Imf::FrameBuffer exrFrameBuffer;
-
     const Imf::PixelType compType = Imf::FLOAT;
+
+    // Write RGB version
+    std::vector<float> rgbImage;
+    getRGBImage(rgbImage);
+
+    const std::array<std::string, 3> rgbChannels = {"R", "G", "B"};
+    const size_t xStrideRGB = sizeof(float) * 3;
+    const size_t yStrideRGB = xStrideRGB * width();
+
+    for (size_t c = 0; c < 3; c++) {
+        char* ptrRGB = (char*)(&rgbImage[c]);
+        exrChannels.insert(rgbChannels[c], Imf::Channel(compType));
+        exrFrameBuffer.insert(
+                rgbChannels[c], 
+                Imf::Slice(compType, ptrRGB, xStrideRGB, yStrideRGB));
+    }
+
+    // Write spectral version
     const size_t xStride = sizeof(float) * nSpectralBands();
     const size_t yStride = xStride * width();
 
-    
     for (size_t s = 0; s < nStokesComponents(); s++) {
         for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
             // Populate channel name

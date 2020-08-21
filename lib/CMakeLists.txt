@@ -28,6 +28,8 @@ if (OpenEXR_FOUND)
         # Optional bi spectral variants
         BiSpectralImage.cpp
         EXRBiSpectralImage.cpp
+
+        SpectrumConverter.cpp
     )
 
     set_target_properties(EXRSpectralImage PROPERTIES VERSION ${PROJECT_VERSION})
