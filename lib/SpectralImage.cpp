@@ -1,6 +1,7 @@
 #include <SpectralImage.h>
 
 #include <sstream>
+#include <cassert>
 
 #include <OpenEXR/ImfOutputFile.h>
 #include <OpenEXR/ImfChannelList.h>
@@ -45,4 +46,30 @@ void SpectralImage::exportChannels(const std::string& path) const {
             exrOut.writePixels(height());
         }
     }
+}
+
+
+float& SpectralImage::operator()(
+    size_t x, size_t y,
+    size_t wavelength_idx, 
+    size_t stokes
+) {
+    assert(x < width());
+    assert(y < height());
+    assert(wavelength_idx < nSpectralBands());
+    assert(stokes < 4);
+    return _pixelBuffers[stokes][nSpectralBands() * (y * width() + x) + wavelength_idx];
+}
+
+
+const float& SpectralImage::operator()(
+    size_t x, size_t y,
+    size_t wavelength_idx, 
+    size_t stokes
+) const {
+    assert(x < width());
+    assert(y < height());
+    assert(wavelength_idx < nSpectralBands());
+    assert(stokes < 4);
+    return _pixelBuffers[stokes][nSpectralBands() * (y * width() + x) + wavelength_idx];
 }

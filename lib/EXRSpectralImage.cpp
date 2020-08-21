@@ -10,6 +10,16 @@
 
 
 EXRSpectralImage::EXRSpectralImage(
+    size_t width, size_t height,
+    const std::vector<float>& wavelengths_nm,
+    bool containsPolarisationData
+)
+    : SpectralImage(width, height, wavelengths_nm, containsPolarisationData)
+{
+}
+
+
+EXRSpectralImage::EXRSpectralImage(
     const std::string& filename
 ) 
     : SpectralImage()
@@ -79,10 +89,8 @@ EXRSpectralImage::EXRSpectralImage(
 
 
     // We allocate _pixelBuffer memory
-    const size_t nStokeComponent = (_containsPolarisationData ? 4 : 1);
-
-    for (size_t s = 0; s < nStokeComponent; s++) {
-        _pixelBuffers[s].resize(_wavelengths_nm.size() * _width * _height);
+    for (size_t s = 0; s < nStokesComponents(); s++) {
+        _pixelBuffers[s].resize(nSpectralBands() * _width * _height);
     }
 
     // Then, we read the pixel data
@@ -90,11 +98,11 @@ EXRSpectralImage::EXRSpectralImage(
 
     if (_isSpectral) {
         const Imf::PixelType compType = Imf::FLOAT;
-        const size_t xStride = sizeof(float) * _wavelengths_nm.size();
+        const size_t xStride = sizeof(float) * nSpectralBands();
         const size_t yStride = xStride * _width;
 
-        for (size_t s = 0; s < nStokeComponent; s++) {
-            for (size_t wl_idx = 0; wl_idx < _wavelengths_nm.size(); wl_idx++) {
+        for (size_t s = 0; s < nStokesComponents(); s++) {
+            for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
                 char* ptrS = (char*)(&_pixelBuffers[s][wl_idx]);
                 exrFrameBuffer.insert(
                     wavelengths_nm_S[s][wl_idx].second, 
@@ -112,20 +120,19 @@ EXRSpectralImage::EXRSpectralImage(
 
 
 void EXRSpectralImage::save(const std::string& filename) const {
-    Imf::Header exrHeader(_width, _height);
+    Imf::Header exrHeader(width(), height());
     Imf::ChannelList & exrChannels = exrHeader.channels();
 
     // Layout framebuffer
     Imf::FrameBuffer exrFrameBuffer;
 
     const Imf::PixelType compType = Imf::FLOAT;
-    const size_t xStride = sizeof(float) * _wavelengths_nm.size();
-    const size_t yStride = xStride * _width;
+    const size_t xStride = sizeof(float) * nSpectralBands();
+    const size_t yStride = xStride * width();
 
-    const size_t nStokeComponent = (_containsPolarisationData ? 4 : 1);
     
-    for (size_t s = 1; s < nStokeComponent; s++) {
-        for (size_t wl_idx = 0; wl_idx < _wavelengths_nm.size(); wl_idx++) {
+    for (size_t s = 0; s < nStokesComponents(); s++) {
+        for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
             // Populate channel name
             std::string channelName = getChannelName(s, _wavelengths_nm[wl_idx]);
             exrChannels.insert(channelName, Imf::Channel(compType));
@@ -139,7 +146,7 @@ void EXRSpectralImage::save(const std::string& filename) const {
 
     Imf::OutputFile exrOut(filename.c_str(), exrHeader);
     exrOut.setFrameBuffer(exrFrameBuffer);
-    exrOut.writePixels(_height);
+    exrOut.writePixels(height());
 }
 
 

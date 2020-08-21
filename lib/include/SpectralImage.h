@@ -32,6 +32,14 @@ class SpectralImage {
 
         size_t nStokesComponents() const { return (_containsPolarisationData ? 4 : 1); }
 
+        float& operator()(
+            size_t x, size_t y, 
+            size_t wavelength_idx, size_t stokes = 0);
+
+        const float& operator()(
+            size_t x, size_t y, 
+            size_t wavelength_idx, size_t stokes = 0) const;
+
     protected:
         size_t _width, _height;
         std::array<std::vector<float>, 4> _pixelBuffers;
