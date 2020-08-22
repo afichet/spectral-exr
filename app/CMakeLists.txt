@@ -3,3 +3,4 @@ project(SpectralImage)
 
 add_subdirectory(macbeth)
 add_subdirectory(split-channels)
+add_subdirectory(spectrum-to-exr)
