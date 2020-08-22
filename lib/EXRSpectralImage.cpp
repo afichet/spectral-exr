@@ -129,7 +129,7 @@ EXRSpectralImage::EXRSpectralImage(
     // -----------------------------------------------------------------------
 
     // Image type: reflective or emissive
-    const Imf::StringAttribute * imageTypeAttr = exrHeader.findTypedAttribute<Imf::StringAttribute>("Spectrum Type");
+    const Imf::StringAttribute * imageTypeAttr = exrHeader.findTypedAttribute<Imf::StringAttribute>(SPECTRUM_TYPE_ATTR);
 
     if (imageTypeAttr != nullptr) {
         if (imageTypeAttr->value() == "emissive") {
@@ -142,7 +142,7 @@ EXRSpectralImage::EXRSpectralImage(
     }
 
     // Lens transmission data
-    const Imf::StringAttribute * lensTransmissionAttr = exrHeader.findTypedAttribute<Imf::StringAttribute>("Lens transmission spectrum");
+    const Imf::StringAttribute * lensTransmissionAttr = exrHeader.findTypedAttribute<Imf::StringAttribute>(LENS_TRANSMISSION_ATTR);
     
     if (lensTransmissionAttr != nullptr) {
         try {
@@ -153,7 +153,7 @@ EXRSpectralImage::EXRSpectralImage(
     }
 
     // Camera spectral response
-    const Imf::StringAttribute * cameraResponseAttr = exrHeader.findTypedAttribute<Imf::StringAttribute>("Camera response");
+    const Imf::StringAttribute * cameraResponseAttr = exrHeader.findTypedAttribute<Imf::StringAttribute>(CAMERA_RESPONSE_ATTR);
     
     if (cameraResponseAttr != nullptr) {
         try {
@@ -182,12 +182,11 @@ EXRSpectralImage::EXRSpectralImage(
 
 void EXRSpectralImage::save(const std::string& filename) const {
     Imf::Header exrHeader(width(), height());
-    exrHeader.insert("Spectrum Type", 
-        Imf::StringAttribute(
-            (_spectrumType == REFLECTIVE_IMAGE) ? "reflective" : "emissive")
-    );
-
     Imf::ChannelList & exrChannels = exrHeader.channels();
+
+    // -----------------------------------------------------------------------
+    // Write the pixel data
+    // -----------------------------------------------------------------------
 
     // Layout framebuffer
     Imf::FrameBuffer exrFrameBuffer;
@@ -226,6 +225,37 @@ void EXRSpectralImage::save(const std::string& filename) const {
         }
     }
 
+    // -----------------------------------------------------------------------
+    // Write metadata
+    // -----------------------------------------------------------------------
+
+    exrHeader.insert(SPECTRUM_TYPE_ATTR, 
+        Imf::StringAttribute(
+            (_spectrumType == REFLECTIVE_IMAGE) ? "reflective" : "emissive")
+    );
+
+    if (_lensTransmissionSpectra.size() > 0) {
+        exrHeader.insert(LENS_TRANSMISSION_ATTR, _lensTransmissionSpectra.getAttribute());
+    }
+
+    if (_cameraReponse.size() > 0) {
+        exrHeader.insert(CAMERA_RESPONSE_ATTR, _cameraReponse.getAttribute());
+    }
+
+    if (_channelSensitivity.size() > 0) {
+        for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
+            if (_channelSensitivity[wl_idx].size() > 0) {
+                std::string channelName = getChannelName(0, _wavelengths_nm[wl_idx]);
+
+                exrHeader.insert(channelName, _channelSensitivity[wl_idx].getAttribute());
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Write file
+    // -----------------------------------------------------------------------
+    
     Imf::OutputFile exrOut(filename.c_str(), exrHeader);
     exrOut.setFrameBuffer(exrFrameBuffer);
     exrOut.writePixels(height());

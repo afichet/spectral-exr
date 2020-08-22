@@ -39,6 +39,26 @@ class SpectralImage {
         size_t nSpectralBands() const { return _wavelengths_nm.size(); }
         size_t nStokesComponents() const { return (_containsPolarisationData ? 4 : 1); }
 
+        void setCameraResponse(
+            const std::vector<float>& wavelengths_nm,
+            const std::vector<float>& values
+        );
+
+        void setLensTransmission(
+            const std::vector<float>& wavelengths_nm,
+            const std::vector<float>& values
+        );
+
+        void setChannelSensitivity(
+            size_t wl_idx,
+            const std::vector<float>& wavelengths_nm,
+            const std::vector<float>& values
+        );
+
+        const SpectrumAttribute& getLensTransmission() const { return _lensTransmissionSpectra; }
+        const SpectrumAttribute& getCameraResponse()   const { return _cameraReponse; }
+        const SpectrumAttribute& getChannelSensitivity(size_t wl_idx) const { return _channelSensitivity[wl_idx]; }
+
         float& operator()(
             size_t x, size_t y, 
             size_t wavelength_idx, size_t stokes = 0);

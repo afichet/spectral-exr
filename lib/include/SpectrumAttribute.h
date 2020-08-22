@@ -35,7 +35,7 @@ class SpectrumAttribute {
               float& value(size_t i)       { return _values[i]; }
         const float& value(size_t i) const { return _values[i]; }
 
-        size_t size() { return _wavelengths_nm.size(); }
+        size_t size() const { return _wavelengths_nm.size(); }
 
     protected:
         std::vector<float> _wavelengths_nm;

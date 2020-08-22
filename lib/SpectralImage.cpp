@@ -20,11 +20,12 @@ SpectralImage::SpectralImage(
     , _isSpectral(!wavelengths_nm.empty())
     , _containsPolarisationData(containsPolarisationData)
     , _spectrumType(type)
-
 {
     for (size_t s = 0; s < nStokesComponents(); s++) {
         _pixelBuffers[s].resize(nSpectralBands() * _width * _height);
     }
+
+    _channelSensitivity.resize(nSpectralBands());
 }
 
 
@@ -70,6 +71,38 @@ const {
 
         memcpy(&rgbImage[3 * i], &rgb[0], 3 * sizeof(float));
     }
+}
+
+
+void SpectralImage::setCameraResponse(
+    const std::vector<float>& wavelengths_nm,
+    const std::vector<float>& values
+) {
+    assert(wavelengths_nm.size() == values.size());
+
+    _cameraReponse = SpectrumAttribute(wavelengths_nm, values);
+}
+
+
+void SpectralImage::setLensTransmission(
+    const std::vector<float>& wavelengths_nm,
+    const std::vector<float>& values
+) {
+    assert(wavelengths_nm.size() == values.size());
+
+    _lensTransmissionSpectra = SpectrumAttribute(wavelengths_nm, values);
+}
+
+
+void SpectralImage::setChannelSensitivity(
+    size_t wl_idx,
+    const std::vector<float>& wavelengths_nm,
+    const std::vector<float>& values
+) {
+    assert(wl_idx < _pixelBuffers[0].size());
+    assert(wavelengths_nm.size() == values.size());
+    
+    _channelSensitivity[wl_idx] = SpectrumAttribute(wavelengths_nm, values);
 }
 
 
