@@ -1,14 +1,100 @@
 #include <SpectrumAttribute.h>
+#include <EXRSpectralImage.h>
+
+#include <filesystem>
+#include <string>
+#include <algorithm>
+#include <vector>
+
+#include <OpenEXR/ImfRgbaFile.h>
+#include <OpenEXR/ImfArray.h>
+
+bool checkExtension(const std::string& path) {
+    if (path.length() < 4) { return false; }
+
+    const char* c[2] = {".EXR", ".exr"};
+    
+    for (int i = 0; i < 5; i++) {
+        if (path[path.length() - i] != c[0][4 - i]
+         && path[path.length() - i] != c[1][4 - i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 
 int main(int argc, char* argv[]) {
 
-    SpectrumAttribute sa(Imf::StringAttribute("195Hz,12;512nm,13;800.2E-3kHz,30;200.2E-3kHz,30;"));
+    if (argc < 5) {
+        std::cout << "Usage:" << std::endl
+                  << "------" << std::endl
+                  << argv[0] << " <folder> <start_wl_nm> <increment_wl_nm> <output_file> <camera_response> <lens_transmission> <channels_sensitivity...>" << std::endl
+                  << std::endl;
 
-    for (size_t i = 0; i < sa.size(); i++) {
-        std::cout << sa.wavelength_nm(i) << " ";
-        std::cout << sa.value(i) << std::endl;
+        return 0;
     }
+
+    // List files in folder
+    std::vector<std::string> files;
+    const std::string allowed_extension = ".exr";
+
+    for (auto& p: std::filesystem::directory_iterator(argv[1])) {
+        std::filesystem::path path = p.path();
+
+        if (std::filesystem::is_regular_file(path) && checkExtension(path)) {
+            files.push_back(path);
+        }
+    }
+
+    // Sort files
+    std::sort(files.begin(), files.end());
+
+    // Get wavelength info
+    const float start_wl_nm = std::stof(argv[2]);
+    const float increment_wl_nm = std::stof(argv[3]);
+
+    size_t width(0), height(0);
+    std::vector<Imf::Rgba> pixels;
+
+    std::vector<float> wavelengths;
+    wavelengths.reserve(files.size());
+
+    std::vector<float> spectralFramebuffer;
+
+    for (size_t i = 0; i < files.size(); i++) {
+        wavelengths.push_back(start_wl_nm + i * increment_wl_nm);
+        Imf::RgbaInputFile file(files[i].c_str());
+        Imath::Box2i dw = file.dataWindow();
+        const size_t c_width  = dw.max.x - dw.min.x + 1;
+        const size_t c_height = dw.max.y - dw.min.y + 1;
+
+        if (i == 0) {
+            width = c_width;
+            height = c_height;
+            spectralFramebuffer.resize(width * height * files.size());
+        } else if (width != c_width || height != c_height) {
+            std::cerr << "Image sizes does not match" << std::endl;
+            return -1;
+        }
+
+        pixels.resize(height * width);
+        file.setFrameBuffer(&pixels[0], 1, width);
+        file.readPixels(dw.min.y, dw.max.y);
+
+        // We can't memcpy: half to float conversion and taking every channel
+        for (size_t j = 0; j < width * height; j++) {
+            spectralFramebuffer[files.size() * j + i] = (pixels[j].r + pixels[j].g + pixels[j].b) / 3.F;
+        }
+    }
+
+    // Now, create the spectral image
+    EXRSpectralImage spectralImage(width, height, wavelengths, SpectralImage::REFLECTIVE_IMAGE);
+
+    memcpy(&spectralImage(0, 0, 0), &spectralFramebuffer[0], width * height * wavelengths.size() * sizeof(float));
+
+    spectralImage.save(argv[4]);
 
     return 0;
 }
