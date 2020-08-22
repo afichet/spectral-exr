@@ -87,9 +87,8 @@ const {
 
 size_t SpectrumConverter::cmfWavelengthValue(size_t index) 
 const { 
-    assert(index >= 0);
-    assert(index < _xyzCmfs[0].size());
-
+    // assert(index < _xyzCmfs[0].size());
+    if (index >= _xyzCmfs[0].size()) return 0;
     return _cmfFirstWavelength_nm + index;
 }
 
@@ -138,14 +137,14 @@ void SpectrumConverter::emissiveSpectrumToXYZ(
         }
 
         const size_t idx_cmf_start = cmfWavelengthIndex(wl_a);
-        size_t       idx_cmf_end   = cmfWavelengthIndex(wl_b) - 1;
+        size_t       idx_cmf_end   = cmfWavelengthIndex(wl_b);
 
         // On last intervall we need to include the last wavelength of the spectrum
         if (idx_value == wavelengths_nm.size() - 2) {
             idx_cmf_end = idx_cmf_end + 1;
         }
 
-        for (size_t idx_cmf = idx_cmf_start; idx_cmf <= idx_cmf_end; idx_cmf++) {
+        for (size_t idx_cmf = idx_cmf_start; idx_cmf < idx_cmf_end; idx_cmf++) {
             const float curr_wl    = cmfWavelengthValue(idx_cmf);
             const float curr_value = MathUtil::interp(
                 curr_wl,
@@ -209,18 +208,18 @@ void SpectrumConverter::reflectiveSpectrumToXYZ(
         }
 
         const size_t idx_curve_start = cmfWavelengthIndex(wl_a);
-        size_t       idx_curve_end   = cmfWavelengthIndex(wl_b) - 1;
+        size_t       idx_curve_end   = cmfWavelengthIndex(wl_b);
 
         // On last intervall we need to include the last wavelength of the spectrum
         if (idx_value == wavelengths_nm.size() - 2) {
             idx_curve_end = idx_curve_end + 1;
         }
 
-        for (size_t idx_curve = idx_curve_start; idx_curve <= idx_curve_end; idx_curve++) {
+        for (size_t idx_curve = idx_curve_start; idx_curve < idx_curve_end; idx_curve++) {
             const float curr_wl = cmfWavelengthValue(idx_curve);
 
             const size_t idx_illu_a = curr_wl - _illuminantFirstWavelenght_nm;
-            assert(idx_illu_a >= 0);
+            assert(curr_wl >= _illuminantFirstWavelenght_nm);
             assert(idx_illu_a < _illuminantSPD.size());
 
             const float illu_value = _illuminantSPD[idx_illu_a];
