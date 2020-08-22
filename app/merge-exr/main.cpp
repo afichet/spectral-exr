@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Now, create the spectral image
-    EXRSpectralImage spectralImage(width, height, wavelengths, SpectralImage::REFLECTIVE_IMAGE);
+    EXRSpectralImage spectralImage(width, height, wavelengths, SpectralImage::EMISSIVE_IMAGE);
 
     memcpy(&spectralImage(0, 0, 0), &spectralFramebuffer[0], width * height * wavelengths.size() * sizeof(float));
 
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
             std::vector<float> filter_wavelengths_nm;
             std::vector<float> filter_transmission;
 
-            std::cout << "\t[Filter transmission at " << wavelengths[c - 7] << "nm:] " << argv[6] << std::endl;
+            std::cout << "\t[Filter transmission at " << wavelengths[c - 7] << "nm:] " << argv[c] << std::endl;
 
             load_csv(argv[c], filter_wavelengths_nm, filter_transmission);
             spectralImage.setChannelSensitivity(c - 7, filter_wavelengths_nm, filter_transmission);
