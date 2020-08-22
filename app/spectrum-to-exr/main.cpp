@@ -46,7 +46,9 @@ int main(int argc, char* argv[]) {
         type = SpectralImage::EMISSIVE_IMAGE;
     } else {
         std::cerr << "Invalid argument for spectrum type!" << std::endl;
-        std::cerr << "The spectrum type can either be \"emissive\" or \"reflective\"." << std::endl;        
+        std::cerr << "The spectrum type can either be \"emissive\" or \"reflective\"." << std::endl;
+
+        return -1;
     }
 
     EXRSpectralImage image(1, 1, wavelengths_nm, type);
