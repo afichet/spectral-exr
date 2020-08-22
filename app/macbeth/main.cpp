@@ -47,9 +47,7 @@ int main(int argc, char* argv[]) {
                 )
             )
             {
-                for (size_t wl_idx = 0; wl_idx < spectralImage.nSpectralBands(); wl_idx++) {
-                    spectralImage(x, y, wl_idx) = macbeth_patches[idx][wl_idx];
-                }
+                memcpy(&spectralImage(x, y, 0), &macbeth_patches[idx][0], spectralImage.nSpectralBands() * sizeof(float));
             }
         }
     }

@@ -4,6 +4,8 @@
 #include <array>
 #include <string>
 
+#include <SpectrumAttribute.h>
+
 class SpectralImage {
     public:
         enum Errors {
@@ -11,7 +13,7 @@ class SpectralImage {
             INTERNAL_ERROR,
             READ_ERROR,
             WRITE_ERROR,
-            INCORECTED_FORMED_FILE
+            INCORRECT_FORMED_FILE
         };
 
         enum SpectrumType {
@@ -52,4 +54,8 @@ class SpectralImage {
         bool _isSpectral;
         bool _containsPolarisationData;
         SpectrumType _spectrumType;
+
+        SpectrumAttribute _lensTransmissionSpectra;
+        SpectrumAttribute _cameraReponse;
+        std::vector<SpectrumAttribute> _channelSensitivity;
 };

@@ -33,7 +33,7 @@ const {
     const size_t xStride = sizeof(float) * nSpectralBands();
     const size_t yStride = xStride * width();
 
-    for (size_t s = 0; s < nSpectralBands(); s++) {
+    for (size_t s = 0; s < nStokesComponents(); s++) {
         for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
             const float& wavelength = _wavelengths_nm[wl_idx];
             std::stringstream filepath;

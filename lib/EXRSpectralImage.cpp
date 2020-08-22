@@ -1,4 +1,5 @@
 #include <EXRSpectralImage.h>
+#include "Util.h"
 
 #include <regex>
 #include <algorithm>
@@ -28,23 +29,14 @@ EXRSpectralImage::EXRSpectralImage(
     Imf::InputFile exrIn(filename.c_str());
     const Imf::Header& exrHeader = exrIn.header();
     const Imath::Box2i& exrDataWindow = exrHeader.dataWindow();
-
-    const Imf::StringAttribute * imageTypeAttribute = exrHeader.findTypedAttribute<Imf::StringAttribute>("Spectrum Type");
-
-    if (imageTypeAttribute != nullptr) {
-        if (imageTypeAttribute->value() == "emissive") {
-            _spectrumType = EMISSIVE_IMAGE;
-        } else if (imageTypeAttribute->value() == "reflective") {
-            _spectrumType = REFLECTIVE_IMAGE;
-        } else {
-            throw INCORECTED_FORMED_FILE;
-        }
-    }
-
+    
     _width  = exrDataWindow.max.x - exrDataWindow.min.x + 1;
     _height = exrDataWindow.max.y - exrDataWindow.min.y + 1;
 
-    // Determine position of the channels
+    // -----------------------------------------------------------------------
+    // Determine channels' position
+    // -----------------------------------------------------------------------
+
     const Imf::ChannelList& exrChannels = exrHeader.channels();
 
     std::array<std::vector<std::pair<float, std::string>>, 4> wavelengths_nm_S;
@@ -78,7 +70,7 @@ EXRSpectralImage::EXRSpectralImage(
         const float base_size = wavelengths_nm_S[0].size();
         for (size_t s = 1; s < 4; s++) {
             if (wavelengths_nm_S[s].size() != base_size) {
-                throw INCORECTED_FORMED_FILE;
+                throw INCORRECT_FORMED_FILE;
             }
         }
 
@@ -87,7 +79,7 @@ EXRSpectralImage::EXRSpectralImage(
             const float base_wl = wavelengths_nm_S[0][wl_idx].first;
             for (size_t s = 1; s < 4; s++) {
                 if (wavelengths_nm_S[s][wl_idx].first != base_wl) {
-                    throw INCORECTED_FORMED_FILE;
+                    throw INCORRECT_FORMED_FILE;
                 }
             }
         }
@@ -100,13 +92,15 @@ EXRSpectralImage::EXRSpectralImage(
         _wavelengths_nm.push_back(wl_index.first);
     }
 
-
     // We allocate _pixelBuffer memory
     for (size_t s = 0; s < nStokesComponents(); s++) {
         _pixelBuffers[s].resize(nSpectralBands() * _width * _height);
     }
 
-    // Then, we read the pixel data
+    // -----------------------------------------------------------------------
+    // Read the pixel data
+    // -----------------------------------------------------------------------
+
     Imf::FrameBuffer exrFrameBuffer;
 
     if (_isSpectral) {
@@ -124,11 +118,65 @@ EXRSpectralImage::EXRSpectralImage(
         }
     } else {
         // Probably an RGB EXR, not our job to handle it
-        throw INCORECTED_FORMED_FILE;
+        throw INCORRECT_FORMED_FILE;
     }
 
     exrIn.setFrameBuffer(exrFrameBuffer);
     exrIn.readPixels(exrDataWindow.min.y, exrDataWindow.max.y);
+
+    // -----------------------------------------------------------------------
+    // Read metadata
+    // -----------------------------------------------------------------------
+
+    // Image type: reflective or emissive
+    const Imf::StringAttribute * imageTypeAttr = exrHeader.findTypedAttribute<Imf::StringAttribute>("Spectrum Type");
+
+    if (imageTypeAttr != nullptr) {
+        if (imageTypeAttr->value() == "emissive") {
+            _spectrumType = EMISSIVE_IMAGE;
+        } else if (imageTypeAttr->value() == "reflective") {
+            _spectrumType = REFLECTIVE_IMAGE;
+        } else {
+            throw INCORRECT_FORMED_FILE;
+        }
+    }
+
+    // Lens transmission data
+    const Imf::StringAttribute * lensTransmissionAttr = exrHeader.findTypedAttribute<Imf::StringAttribute>("Lens transmission spectrum");
+    
+    if (lensTransmissionAttr != nullptr) {
+        try {
+            _lensTransmissionSpectra = SpectrumAttribute(*lensTransmissionAttr);
+        } catch (SpectrumAttribute::Error &e) {
+            throw INCORRECT_FORMED_FILE;
+        }
+    }
+
+    // Camera spectral response
+    const Imf::StringAttribute * cameraResponseAttr = exrHeader.findTypedAttribute<Imf::StringAttribute>("Camera response");
+    
+    if (cameraResponseAttr != nullptr) {
+        try {
+            _cameraReponse = SpectrumAttribute(*cameraResponseAttr);
+        } catch (SpectrumAttribute::Error &e) {
+            throw INCORRECT_FORMED_FILE;
+        }
+    }
+
+    // Each channel sensitivity
+    _channelSensitivity.resize(nSpectralBands());
+
+    for (size_t i = 0; i < wavelengths_nm_S[0].size(); i++) {
+        const Imf::StringAttribute * filterTransmissionAttr = exrHeader.findTypedAttribute<Imf::StringAttribute>(wavelengths_nm_S[0][i].second);
+        
+        if (filterTransmissionAttr != nullptr) {
+            try {
+                _channelSensitivity[i] = SpectrumAttribute(*filterTransmissionAttr);
+            } catch (SpectrumAttribute::Error& e) {
+                throw INCORRECT_FORMED_FILE;
+            }
+        }
+    }
 }
 
 
@@ -189,13 +237,6 @@ bool EXRSpectralImage::isSpectralChannel(
     int& stokesComponent,
     float& wavelength_nm
 ) {
-    const std::map<std::string, float> unit_prefix = {
-        {"Y", 1e24}, {"Z", 1e21}, {"E", 1e18}, {"P", 1e15}, {"T", 1e12},
-        {"G", 1e9} , {"M", 1e6} , {"k", 1e3} , {"h", 1e2} , {"da", 1e1},
-        {"d", 1e-1}, {"c", 1e-2}, {"m", 1e-3}, {"u", 1e-6}, {"n", 1e-9},
-        {"p", 1e-12}
-    };
-    
     const std::regex expr
         ("^S([0-3])\\.(\\d*,?\\d*([Ee][+-]?\\d+)?)(Y|Z|E|P|T|G|M|k|h|da|d|c|m|u|n|p)?(m|Hz)$");
     std::smatch matches;
@@ -215,31 +256,17 @@ bool EXRSpectralImage::isSpectralChannel(
         std::replace(centralValueStr.begin(), centralValueStr.end(), ',', '.');
         float value = std::stof(centralValueStr);
         
-        // Apply multiplier
+        // Convert to nanometers
         const std::string prefix = matches[4].str();
-        
-        if (prefix.size() > 0) {
-            try {
-                value *= unit_prefix.at(prefix);
-            } catch (std::out_of_range& exception) {
-                // Unknown unit multiplier
-                // Something went wrong with the parsing. This shall not occur.
-                throw INTERNAL_ERROR;
-            }
-        }
-
-        // Apply units
         const std::string units = matches[5].str();
-        
-        if (units == "Hz") {
-            wavelength_nm = 299792458.F/value * 1e9;
-        } else if (units == "m") {
-            wavelength_nm = value * 1e9;
-        } else {
-            // Unknown unit
+
+        try {
+            wavelength_nm = Util::strToNanometers(value, prefix, units);
+        } catch (std::out_of_range& exception) {
+            // Unknown unit or multiplier
             // Something went wrong with the parsing. This shall not occur.
             throw INTERNAL_ERROR;
-        }		
+        }
     }
 
     return matched;

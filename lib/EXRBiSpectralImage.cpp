@@ -95,7 +95,7 @@ EXRBiSpectralImage::EXRBiSpectralImage(
         const float base_size = diagonal_wavelengths_nm_S[0].size();
         for (size_t s = 1; s < 4; s++) {
             if (diagonal_wavelengths_nm_S[s].size() != base_size) {
-                throw INCORECTED_FORMED_FILE;
+                throw INCORRECT_FORMED_FILE;
             }
         }
 
@@ -104,7 +104,7 @@ EXRBiSpectralImage::EXRBiSpectralImage(
             const float base_wl = diagonal_wavelengths_nm_S[0][wl_idx].first;
             for (size_t s = 1; s < 4; s++) {
                 if (diagonal_wavelengths_nm_S[s][wl_idx].first != base_wl) {
-                    throw INCORECTED_FORMED_FILE;
+                    throw INCORRECT_FORMED_FILE;
                 }
             }
         }

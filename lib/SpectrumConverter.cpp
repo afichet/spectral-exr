@@ -1,5 +1,5 @@
 #include "SpectrumConverter.h"
-#include "MathUtil.h"
+#include "Util.h"
 #include "spectrum_data.h"
 
 #include <cstring>
@@ -146,7 +146,7 @@ void SpectrumConverter::emissiveSpectrumToXYZ(
 
         for (size_t idx_cmf = idx_cmf_start; idx_cmf < idx_cmf_end; idx_cmf++) {
             const float curr_wl    = cmfWavelengthValue(idx_cmf);
-            const float curr_value = MathUtil::interp(
+            const float curr_value = Util::interp(
                 curr_wl,
                 wavelengths_nm[idx_value],
                 wavelengths_nm[idx_value + 1],
@@ -227,7 +227,7 @@ void SpectrumConverter::reflectiveSpectrumToXYZ(
             normalisation_factor += illu_value * _xyzCmfs[1][idx_curve]; // Y
 
             const float curr_value = 
-                illu_value * MathUtil::interp(
+                illu_value * Util::interp(
                                 curr_wl,
                                 wavelengths_nm[idx_value],
                                 wavelengths_nm[idx_value + 1],

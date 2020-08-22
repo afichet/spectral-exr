@@ -13,6 +13,7 @@ find_package(OpenEXR REQUIRED)
 
 if (OpenEXR_FOUND)
     set(PUBLIC_HEADERS
+        include/SpectrumAttribute.h
         include/SpectralImage.h
         include/EXRSpectralImage.h
 
@@ -30,6 +31,7 @@ if (OpenEXR_FOUND)
         EXRBiSpectralImage.cpp
 
         SpectrumConverter.cpp
+        SpectrumAttribute.cpp
     )
 
     set_target_properties(EXRSpectralImage PROPERTIES VERSION ${PROJECT_VERSION})
