@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     for (size_t i = 0; i < files.size(); i++) {
         wavelengths.push_back(start_wl_nm + i * increment_wl_nm);
         Imf::RgbaInputFile file(files[i].c_str());
-        std::cout << "\t[At " << wavelengths[i] << "nm:] " << files[i] << std::endl;
+        std::cout << "\tAt " << wavelengths[i] << "nm: [" << files[i] << "]" << std::endl;
 
         Imath::Box2i dw = file.dataWindow();
         const size_t c_width  = dw.max.x - dw.min.x + 1;
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
         std::vector<float> camera_wavelengths_nm;
         std::vector<float> camera_response;
 
-        std::cout << "\t[Camera response:] " << argv[5] << std::endl;
+        std::cout << "\tCamera response: [" << argv[5] << "]" << std::endl;
 
         load_csv(argv[5], camera_wavelengths_nm, camera_response);
         spectralImage.setCameraResponse(camera_wavelengths_nm, camera_response);
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
         std::vector<float> lens_wavelengths_nm;
         std::vector<float> lens_transmission;
 
-        std::cout << "\t[Lens transmission:] " << argv[6] << std::endl;
+        std::cout << "\tLens transmission: [" << argv[6] << "]" << std::endl;
 
         load_csv(argv[6], lens_wavelengths_nm, lens_transmission);
         spectralImage.setLensTransmission(lens_wavelengths_nm, lens_transmission);
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
             std::vector<float> filter_wavelengths_nm;
             std::vector<float> filter_transmission;
 
-            std::cout << "\t[Filter transmission at " << wavelengths[c - 7] << "nm:] " << argv[c] << std::endl;
+            std::cout << "\tFilter transmission at: " << wavelengths[c - 7] << "nm: [" << argv[c] << "]" << std::endl;
 
             load_csv(argv[c], filter_wavelengths_nm, filter_transmission);
             spectralImage.setChannelSensitivity(c - 7, filter_wavelengths_nm, filter_transmission);
@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
     }
 
     spectralImage.save(argv[4]);
-    std::cout << std::endl << "File saved as: " << argv[4] << std::endl;
+    std::cout << std::endl << "File saved as: [" << argv[4] << "]" << std::endl;
 
     return 0;
 }

@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
 
     const std::string fileIn = argv[1];
     const std::string fileOut = argv[3];
-    std::cout << "Reading: " << fileIn << std::endl;
+    std::cout << "Reading: [" << fileIn << "]" << std::endl;
 
     std::ifstream inFile(fileIn);
     std::string line;
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     memcpy(&image(0, 0, 0), &values[0], values.size() * sizeof(float));
     image.save(fileOut);
 
-    std::cout << "File saved as: " << fileOut << std::endl;
+    std::cout << "File saved as: [" << fileOut << "]" << std::endl;
 
     return 0;
 }
