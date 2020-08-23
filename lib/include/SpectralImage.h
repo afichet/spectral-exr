@@ -18,14 +18,14 @@ class SpectralImage {
         };
 
         enum SpectrumType {
-            REFLECTIVE_IMAGE,
-            EMISSIVE_IMAGE
+            REFLECTIVE,
+            EMISSIVE
         };
 
         SpectralImage(
             size_t width = 0, size_t height = 0,
             const std::vector<float>& wavelengths_nm = std::vector<float>(),
-            SpectrumType type = EMISSIVE_IMAGE,
+            SpectrumType type = EMISSIVE,
             bool containsPolarisationData = false
         );
 
@@ -34,11 +34,18 @@ class SpectralImage {
         virtual void exportChannels(const std::string& path) const;
         virtual void getRGBImage(std::vector<float>& rgbImage) const;
 
-        size_t width() const { return _width; }
+        size_t width()  const { return _width; }
         size_t height() const { return _height; }
 
-        size_t nSpectralBands() const { return _wavelengths_nm.size(); }
+        size_t nSpectralBands()    const { return _wavelengths_nm.size(); }
         size_t nStokesComponents() const { return (_containsPolarisationData ? 4 : 1); }
+        
+        bool polarised()    const { return _containsPolarisationData; }
+        bool emissive()     const { return _spectrumType == EMISSIVE; }
+        bool reflective()   const { return _spectrumType == REFLECTIVE; }
+        SpectrumType type() const { return _spectrumType; }
+
+
 
         const float& wavelength_nm(size_t wl_idx) const { return _wavelengths_nm[wl_idx]; }
 

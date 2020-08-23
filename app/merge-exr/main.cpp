@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Now, create the spectral image
-    EXRSpectralImage spectralImage(width, height, wavelengths, SpectralImage::EMISSIVE_IMAGE);
+    EXRSpectralImage spectralImage(width, height, wavelengths, SpectralImage::EMISSIVE);
 
     memcpy(&spectralImage(0, 0, 0), &spectralFramebuffer[0], width * height * wavelengths.size() * sizeof(float));
 

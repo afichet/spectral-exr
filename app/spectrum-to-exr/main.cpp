@@ -41,9 +41,9 @@ int main(int argc, char* argv[]) {
     SpectralImage::SpectrumType type;
 
     if (strcmp(argv[2], "reflective") == 0) {
-        type = SpectralImage::REFLECTIVE_IMAGE;
+        type = SpectralImage::REFLECTIVE;
     } else if (strcmp(argv[2], "emissive") == 0) {
-        type = SpectralImage::EMISSIVE_IMAGE;
+        type = SpectralImage::EMISSIVE;
     } else {
         std::cerr << "Invalid argument for spectrum type!" << std::endl;
         std::cerr << "The spectrum type can either be \"emissive\" or \"reflective\"." << std::endl;

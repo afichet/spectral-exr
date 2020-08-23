@@ -133,9 +133,9 @@ EXRSpectralImage::EXRSpectralImage(
 
     if (imageTypeAttr != nullptr) {
         if (imageTypeAttr->value() == "emissive") {
-            _spectrumType = EMISSIVE_IMAGE;
+            _spectrumType = EMISSIVE;
         } else if (imageTypeAttr->value() == "reflective") {
-            _spectrumType = REFLECTIVE_IMAGE;
+            _spectrumType = REFLECTIVE;
         } else {
             throw INCORRECT_FORMED_FILE;
         }
@@ -231,7 +231,7 @@ void EXRSpectralImage::save(const std::string& filename) const {
 
     exrHeader.insert(SPECTRUM_TYPE_ATTR, 
         Imf::StringAttribute(
-            (_spectrumType == REFLECTIVE_IMAGE) ? "reflective" : "emissive")
+            (_spectrumType == REFLECTIVE) ? "reflective" : "emissive")
     );
 
     if (_lensTransmissionSpectra.size() > 0) {

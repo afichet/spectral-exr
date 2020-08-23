@@ -59,7 +59,7 @@ const {
 void SpectralImage::getRGBImage(std::vector<float>& rgbImage) 
 const {
     rgbImage.resize(3 * width() * height());
-    SpectrumConverter sc((_spectrumType == EMISSIVE_IMAGE) ? SpectrumConverter::EMISSIVE : SpectrumConverter::REFLECTIVE);
+    SpectrumConverter sc((_spectrumType == EMISSIVE) ? SpectrumConverter::EMISSIVE : SpectrumConverter::REFLECTIVE);
     
     std::array<float, 3> rgb;
 

@@ -13,7 +13,7 @@ class BiSpectralImage: public SpectralImage {
         BiSpectralImage(
             size_t width = 0, size_t height = 0,
             const std::vector<float>& wavelengths_nm = std::vector<float>(),
-            SpectrumType type = EMISSIVE_IMAGE,
+            SpectrumType type = EMISSIVE,
             bool containsPolarisationData = false
         );
 

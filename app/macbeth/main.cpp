@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
     EXRSpectralImage spectralImage(
         width, height, 
         wavelengths, 
-        SpectralImage::REFLECTIVE_IMAGE);
+        SpectralImage::REFLECTIVE);
 
     for (size_t y = 0; y < height; y++) {
         const float v_idx = 4.F * float(y) / float(height);
