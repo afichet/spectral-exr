@@ -24,10 +24,14 @@ int main(int argc, char* argv[]) {
     std::vector<float> values;
 
     // Load the CSV file
-    const std::string numberRegex = "(\\d*\\.?\\d*([Ee][+-]?\\d+)?)";
+    const std::string numberRegex = " *(\\d*\\.?\\d*([Ee][+-]?\\d+)?) *";
     const std::regex e("^" + numberRegex + "," + numberRegex + "$");
 
-    std::ifstream inFile(argv[1]);
+    const std::string fileIn = argv[1];
+    const std::string fileOut = argv[3];
+    std::cout << "Reading: " << fileIn << std::endl;
+
+    std::ifstream inFile(fileIn);
     std::string line;
 
     while(std::getline(inFile, line)) {
@@ -37,6 +41,8 @@ int main(int argc, char* argv[]) {
             values.push_back(std::stof(matches[3]));
         }
     }
+
+    std::cout << "Found " << wavelengths_nm.size() << " samples" << std::endl;
 
     SpectralImage::SpectrumType type;
 
@@ -53,7 +59,9 @@ int main(int argc, char* argv[]) {
 
     EXRSpectralImage image(1, 1, wavelengths_nm, type);
     memcpy(&image(0, 0, 0), &values[0], values.size() * sizeof(float));
-    image.save(argv[3]);
+    image.save(fileOut);
+
+    std::cout << "File saved as: " << fileOut << std::endl;
 
     return 0;
 }
