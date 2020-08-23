@@ -164,14 +164,14 @@ EXRSpectralImage::EXRSpectralImage(
     }
 
     // Each channel sensitivity
-    _channelSensitivity.resize(nSpectralBands());
+    _channelSensitivities.resize(nSpectralBands());
 
     for (size_t i = 0; i < wavelengths_nm_S[0].size(); i++) {
         const Imf::StringAttribute * filterTransmissionAttr = exrHeader.findTypedAttribute<Imf::StringAttribute>(wavelengths_nm_S[0][i].second);
         
         if (filterTransmissionAttr != nullptr) {
             try {
-                _channelSensitivity[i] = SpectrumAttribute(*filterTransmissionAttr);
+                _channelSensitivities[i] = SpectrumAttribute(*filterTransmissionAttr);
             } catch (SpectrumAttribute::Error& e) {
                 throw INCORRECT_FORMED_FILE;
             }
@@ -234,20 +234,20 @@ void EXRSpectralImage::save(const std::string& filename) const {
             (_spectrumType == REFLECTIVE) ? "reflective" : "emissive")
     );
 
-    if (_lensTransmissionSpectra.size() > 0) {
-        exrHeader.insert(LENS_TRANSMISSION_ATTR, _lensTransmissionSpectra.getAttribute());
+    if (lensTransmission().size() > 0) {
+        exrHeader.insert(LENS_TRANSMISSION_ATTR, lensTransmission().getAttribute());
     }
 
-    if (_cameraReponse.size() > 0) {
-        exrHeader.insert(CAMERA_RESPONSE_ATTR, _cameraReponse.getAttribute());
+    if (cameraResponse().size() > 0) {
+        exrHeader.insert(CAMERA_RESPONSE_ATTR, cameraResponse().getAttribute());
     }
 
-    if (_channelSensitivity.size() > 0) {
+    if (channelSensitivities().size() > 0) {
         for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
-            if (_channelSensitivity[wl_idx].size() > 0) {
+            if (channelSensitivity(wl_idx).size() > 0) {
                 std::string channelName = getChannelName(0, _wavelengths_nm[wl_idx]);
 
-                exrHeader.insert(channelName, _channelSensitivity[wl_idx].getAttribute());
+                exrHeader.insert(channelName, channelSensitivity(wl_idx).getAttribute());
             }
         }
     }

@@ -45,8 +45,6 @@ class SpectralImage {
         bool reflective()   const { return _spectrumType == REFLECTIVE; }
         SpectrumType type() const { return _spectrumType; }
 
-
-
         const float& wavelength_nm(size_t wl_idx) const { return _wavelengths_nm[wl_idx]; }
 
         void setCameraResponse(
@@ -65,9 +63,10 @@ class SpectralImage {
             const std::vector<float>& values
         );
 
-        const SpectrumAttribute& getLensTransmission() const { return _lensTransmissionSpectra; }
-        const SpectrumAttribute& getCameraResponse()   const { return _cameraReponse; }
-        const SpectrumAttribute& getChannelSensitivity(size_t wl_idx) const { return _channelSensitivity[wl_idx]; }
+        const SpectrumAttribute& lensTransmission() const { return _lensTransmissionSpectra; }
+        const SpectrumAttribute& cameraResponse()   const { return _cameraReponse; }
+        const std::vector<SpectrumAttribute>& channelSensitivities() const { return _channelSensitivities; }
+        const SpectrumAttribute& channelSensitivity(size_t wl_idx) const { return _channelSensitivities[wl_idx]; }
 
         float& operator()(
             size_t x, size_t y, 
@@ -87,5 +86,5 @@ class SpectralImage {
 
         SpectrumAttribute _lensTransmissionSpectra;
         SpectrumAttribute _cameraReponse;
-        std::vector<SpectrumAttribute> _channelSensitivity;
+        std::vector<SpectrumAttribute> _channelSensitivities;
 };

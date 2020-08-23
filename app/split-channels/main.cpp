@@ -42,15 +42,15 @@ int main(int argc, char* argv[]) {
     spectralImage.exportChannels(outputFolder);
     
     // If present, write the additional response and transmission
-    writeAttributeCSVIfExists(spectralImage.getCameraResponse(), outputFolder + "/camera.csv");
-    writeAttributeCSVIfExists(spectralImage.getLensTransmission(), outputFolder + "/lens.csv");
+    writeAttributeCSVIfExists(spectralImage.cameraResponse(), outputFolder + "/camera.csv");
+    writeAttributeCSVIfExists(spectralImage.lensTransmission(), outputFolder + "/lens.csv");
 
     for (size_t wl_idx = 0; wl_idx < spectralImage.nSpectralBands(); wl_idx++) {
         const float& wavelength_nm = spectralImage.wavelength_nm(wl_idx);
         std::stringstream filename;
         filename << outputFolder << "/" << wavelength_nm << ".csv";
 
-        writeAttributeCSVIfExists(spectralImage.getChannelSensitivity(wl_idx), filename.str());
+        writeAttributeCSVIfExists(spectralImage.channelSensitivity(wl_idx), filename.str());
     }
 
     // Create a simple text file for additional information
@@ -91,16 +91,16 @@ int main(int argc, char* argv[]) {
         additionalInfo << "\t" << spectralImage.wavelength_nm(wl_idx) << "nm" << std::endl;
     }
 
-    if (spectralImage.getCameraResponse().size() > 0) {
+    if (spectralImage.cameraResponse().size() > 0) {
         additionalInfo << "- Have camera response informations" << std::endl;
     }
 
-    if (spectralImage.getLensTransmission().size() > 0) {
+    if (spectralImage.lensTransmission().size() > 0) {
         additionalInfo << "- Have lens transmission information" << std::endl;
     }
 
     for (size_t wl_idx = 0; wl_idx < spectralImage.nSpectralBands(); wl_idx++) {
-        if (spectralImage.getChannelSensitivity(wl_idx).size() > 0) {
+        if (spectralImage.channelSensitivity(wl_idx).size() > 0) {
             const float& wavelength_nm = spectralImage.wavelength_nm(wl_idx);
             additionalInfo << "- Filter response for " << wavelength_nm << "nm" << std::endl;
         }

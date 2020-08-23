@@ -26,7 +26,7 @@ SpectralImage::SpectralImage(
         _pixelBuffers[s].resize(nSpectralBands() * _width * _height);
     }
 
-    _channelSensitivity.resize(nSpectralBands());
+    _channelSensitivities.resize(nSpectralBands());
 }
 
 
@@ -103,7 +103,7 @@ void SpectralImage::setChannelSensitivity(
     assert(wl_idx < _pixelBuffers[0].size());
     assert(wavelengths_nm.size() == values.size());
     
-    _channelSensitivity[wl_idx] = SpectrumAttribute(wavelengths_nm, values);
+    _channelSensitivities[wl_idx] = SpectrumAttribute(wavelengths_nm, values);
 }
 
 
