@@ -6,6 +6,7 @@
 
 #include <SpectrumAttribute.h>
 
+
 class SpectralImage {
     public:
         enum Errors {
@@ -38,6 +39,8 @@ class SpectralImage {
 
         size_t nSpectralBands() const { return _wavelengths_nm.size(); }
         size_t nStokesComponents() const { return (_containsPolarisationData ? 4 : 1); }
+
+        const float& wavelength_nm(size_t wl_idx) const { return _wavelengths_nm[wl_idx]; }
 
         void setCameraResponse(
             const std::vector<float>& wavelengths_nm,

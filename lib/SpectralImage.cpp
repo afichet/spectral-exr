@@ -8,6 +8,7 @@
 
 #include "SpectrumConverter.h"
 
+
 SpectralImage::SpectralImage(
     size_t width, size_t height,
     const std::vector<float>& wavelengths_nm,
