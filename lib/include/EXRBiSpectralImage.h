@@ -3,9 +3,9 @@
 #include "BiSpectralImage.h"
 
 class EXRBiSpectralImage: public BiSpectralImage {
-    enum CHANNEL_TYPE {
-        SPECTRAL_DIAGONAL,
-        SPECTRAL_RERADIATION,
+    enum ChannelType {
+        DIAGONAL,
+        RERADIATION,
         RGBA,
         OTHER
     };
@@ -17,12 +17,12 @@ class EXRBiSpectralImage: public BiSpectralImage {
 
         //void save(const std::string& filename) const;
 
-        static CHANNEL_TYPE channelType(
+        ChannelType channelType(
             const std::string& channelName, 
-            int& stokesComponent,
+            int& muellerComponent,
             float& wavelengths_nm,
             float& reradiation_wavelength_nm
-        );
+        ) const;
 
         static float toWavelength_nm(
             const std::string& value,
@@ -30,15 +30,15 @@ class EXRBiSpectralImage: public BiSpectralImage {
             const std::string& unit
         );
         
-        static std::string getChannelName(
-            int stokesComponent,
+        std::string getChannelName(
+            int muellerComponent,
             float wavelength_nm
-        );
+        ) const;
 
-        static std::string getChannelName(
+        std::string getChannelName(
             float wavelength_nm,
             float reradiation_wavelength_nm
-        );
+        ) const;
 
 
 };

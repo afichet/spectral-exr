@@ -48,7 +48,7 @@ EXRSpectralImage::EXRSpectralImage(
         // Check if the channel is a spectral one
         int polarisationComponent;
         float wavelength_nm;
-        SpectrumType spectralChanel = isSpectralChannel(channel.name(), polarisationComponent, wavelength_nm);
+        SpectrumType spectralChanel = channelType(channel.name(), polarisationComponent, wavelength_nm);
 
         if (spectralChanel != UNDEFINED) {
             // We want to make sure there is not both reflective and emissive data in the same image
@@ -252,11 +252,11 @@ void EXRSpectralImage::save(const std::string& filename) const {
 }
 
 
-SpectralImage::SpectrumType EXRSpectralImage::isSpectralChannel(
+SpectralImage::SpectrumType EXRSpectralImage::channelType(
     const std::string& channelName,
     int& polarisationComponent,
     float& wavelength_nm
-) {
+) const {
     const std::regex expr
         ("^((S([0-3]))|(M([0-3])([0-3])))\\.(\\d*,?\\d*([Ee][+-]?\\d+)?)(Y|Z|E|P|T|G|M|k|h|da|d|c|m|u|n|p)?(m|Hz)$");
     std::smatch matches;
@@ -278,7 +278,7 @@ SpectralImage::SpectrumType EXRSpectralImage::isSpectralChannel(
             channelType = SpectrumType::REFLECTIVE;
             const size_t row = std::stoi(matches[5].str());
             const size_t col = std::stoi(matches[6].str());
-            polarisationComponent = col * 4 + row;
+            polarisationComponent = indexFromComponents(row, col);
         } else {
             throw INTERNAL_ERROR;
         }
@@ -326,10 +326,11 @@ std::string EXRSpectralImage::getChannelName(
     const std::string channelName = b.str();
 
     // "Pedantic" check
+#ifndef NDEBUG
     int polarisationComponentChecked;
     float wavelength_nmChecked;
 
-    if (isSpectralChannel(channelName, polarisationComponentChecked, wavelength_nmChecked) != type()) {
+    if (channelType(channelName, polarisationComponentChecked, wavelength_nmChecked) != type()) {
         throw INTERNAL_ERROR;
     }
 
@@ -337,6 +338,7 @@ std::string EXRSpectralImage::getChannelName(
      || wavelength_nmChecked != wavelength_nmChecked) {
         throw INTERNAL_ERROR;
     }
+#endif
 
     return channelName;
 }

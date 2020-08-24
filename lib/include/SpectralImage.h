@@ -86,6 +86,11 @@ class SpectralImage {
             size_t& col
         ) const;
 
+        size_t indexFromComponents(
+            size_t row,
+            size_t col
+        ) const;
+
     protected:
         size_t _width, _height;
         
@@ -93,7 +98,7 @@ class SpectralImage {
         // - 1 for not polarised image
         // - 4 for emissive polarised images (S0, S1, S2, S3)
         // - 9 for reflective polarised images (M00, M01, M02, M03, M10, ... M33)
-        std::array<std::vector<float>, 9> _pixelBuffers;
+        std::array<std::vector<float>, 16> _pixelBuffers;
 
         std::vector<float> _wavelengths_nm;
         bool _containsPolarisationData;

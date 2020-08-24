@@ -18,8 +18,8 @@ if (OpenEXR_FOUND)
         include/EXRSpectralImage.h
 
         # Optional bi spectral variants
-        #include/BiSpectralImage.h
-        #include/EXRBiSpectralImage.h
+        include/BiSpectralImage.h
+        include/EXRBiSpectralImage.h
     )
 
     add_library(EXRSpectralImage SHARED
@@ -30,8 +30,8 @@ if (OpenEXR_FOUND)
         SpectrumAttribute.cpp
 
         # Optional bi spectral variants
-        #BiSpectralImage.cpp
-        #EXRBiSpectralImage.cpp
+        BiSpectralImage.cpp
+        EXRBiSpectralImage.cpp
     )
 
     set_target_properties(EXRSpectralImage PROPERTIES VERSION ${PROJECT_VERSION})

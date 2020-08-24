@@ -30,32 +30,32 @@ EXRBiSpectralImage::EXRBiSpectralImage(
     for (Imf::ChannelList::ConstIterator channel = exrChannels.begin(); 
         channel != exrChannels.end(); channel++) {
         // Check if the channel is a spectral or a bispectral one
-        int stokes;
+        int muellerComponent;
         float in_wavelength_nm, out_wavelength_nm;
 
-        CHANNEL_TYPE currChannelType = channelType(
+        ChannelType currChannelType = channelType(
             channel.name(), 
-            stokes, in_wavelength_nm, out_wavelength_nm);
+            muellerComponent, 
+            in_wavelength_nm, out_wavelength_nm);
         
-        if (   currChannelType == SPECTRAL_DIAGONAL
-            || currChannelType == SPECTRAL_RERADIATION) {
-            _isSpectral = true;
+        if (   currChannelType == DIAGONAL
+            || currChannelType == RERADIATION) {
             
-            if (stokes > 0) {
+            if (muellerComponent > 0) {
                 _containsPolarisationData = true;
             }
         }
 
         switch(currChannelType) {
-            case SPECTRAL_DIAGONAL:
-                diagonal_wavelengths_nm_S[stokes].push_back(
+            case DIAGONAL:
+                diagonal_wavelengths_nm_S[muellerComponent].push_back(
                     std::make_pair(
                         in_wavelength_nm, 
                         channel.name()));
             break;
 
-            case SPECTRAL_RERADIATION:
-                if (stokes != 0) throw INTERNAL_ERROR;
+            case RERADIATION:
+                if (muellerComponent != 0) throw INTERNAL_ERROR;
 
                 reradiation_wavelengths_nm.push_back(
                     std::make_pair(
@@ -70,7 +70,7 @@ EXRBiSpectralImage::EXRBiSpectralImage(
     }
 
     // Sort by ascending wavelengths
-    for (size_t s = 0; s < nStokesComponents(); s++) {
+    for (size_t s = 0; s < nPolarsiationComponents(); s++) {
         std::sort(diagonal_wavelengths_nm_S[s].begin(), diagonal_wavelengths_nm_S[s].end());
     }
 
@@ -112,7 +112,6 @@ EXRBiSpectralImage::EXRBiSpectralImage(
 
     // Now, we can populate the local wavelength vector
     _wavelengths_nm.reserve(diagonal_wavelengths_nm_S[0].size());
-    _reradiation.reserve(diagonal_wavelengths_nm_S[0].size());
 
     for (const auto& wl_index: diagonal_wavelengths_nm_S[0]) {
         _wavelengths_nm.push_back(wl_index.first);
@@ -120,13 +119,13 @@ EXRBiSpectralImage::EXRBiSpectralImage(
 }
 
 
-EXRBiSpectralImage::CHANNEL_TYPE EXRBiSpectralImage::channelType(
+EXRBiSpectralImage::ChannelType EXRBiSpectralImage::channelType(
     const std::string& channelName,
-    int& stokesComponent,
+    int& muellerComponent,
     float& wavelength_nm,
     float& reradiation_wavelength_nm
-) {
-    const std::string exprStokes = "S([0-3])";
+) const {
+    const std::string exprStokes = "M([0-3])([0-3])";
     const std::string exprWave   = "(\\d*,?\\d*([Ee][+-]?\\d+)?)";
     const std::string exprUnits  = "(Y|Z|E|P|T|G|M|k|h|da|d|c|m|u|n|p)?(m|Hz)";
 
@@ -138,45 +137,54 @@ EXRBiSpectralImage::CHANNEL_TYPE EXRBiSpectralImage::channelType(
     const bool matchedDiagonal = std::regex_search(channelName, matches, exprDiagonal);
 
     if (matchedDiagonal) {
-        if (matches.size() != 6) {
+        if (matches.size() != 7) {
             // Something went wrong with the parsing. This shall not occur.
             throw INTERNAL_ERROR;
         }
         
-        stokesComponent = std::stoi(matches[1].str());
+        size_t row = std::stoi(matches[1].str());
+        size_t col = std::stoi(matches[2].str());
+        
+        muellerComponent = indexFromComponents(row, col);
+
         wavelength_nm = toWavelength_nm(
-            matches[2].str(), // Comma separated floating point value
-            matches[4].str(), // Unit multiplier
-            matches[5].str()  // Units
+            matches[3].str(), // Comma separated floating point value
+            matches[5].str(), // Unit multiplier
+            matches[6].str()  // Units
             );
 
-        return SPECTRAL_DIAGONAL;	
+        return DIAGONAL;	
     }
 
     const bool matchedRerad = std::regex_search(channelName, matches, exprRerad);
 
     if (matchedRerad) {
-        if (matches.size() != 10) {
+        if (matches.size() != 11) {
             // Something went wrong with the parsing. This shall not occur.
             throw INTERNAL_ERROR;
         }
 
-        stokesComponent = std::stoi(matches[1].str());
-        if (stokesComponent != 0) return OTHER;
+        size_t row = std::stoi(matches[1].str());
+        size_t col = std::stoi(matches[2].str());
+        
+        muellerComponent = indexFromComponents(row, col);
+        
+        // TODO: double check that. But reradiation shall not be polarising I think...
+        if (muellerComponent != 0) return OTHER;
 
         wavelength_nm = toWavelength_nm(
-            matches[2].str(), // Comma separated floating point value
-            matches[4].str(), // Unit multiplier
-            matches[5].str()  // Units
+            matches[3].str(), // Comma separated floating point value
+            matches[5].str(), // Unit multiplier
+            matches[6].str()  // Units
             );
 
         reradiation_wavelength_nm = toWavelength_nm(
-            matches[6].str(), // Comma separated floating point value
-            matches[8].str(), // Unit multiplier
-            matches[9].str()  // Units
+            matches[7].str(), // Comma separated floating point value
+            matches[9].str(), // Unit multiplier
+            matches[10].str() // Units
             );
 
-        return SPECTRAL_RERADIATION;
+        return RERADIATION;
     }
 
     return OTHER;
@@ -229,31 +237,31 @@ float EXRBiSpectralImage::toWavelength_nm(
 
         
 std::string EXRBiSpectralImage::getChannelName(
-    int stokesComponent,
+    int muellerComponent,
     float wavelength_nm
-) {
+) const {
     std::stringstream b;
     std::string wavelengthStr = std::to_string(wavelength_nm);
     std::replace(wavelengthStr.begin(), wavelengthStr.end(), '.', ',');
 
-    b  << "S" << stokesComponent << "." << wavelengthStr << "nm";
+    b  << "S" << muellerComponent << "." << wavelengthStr << "nm";
 
     const std::string channelName = b.str();
 
     // "Pedantic" check
-    int stokesComponentChecked;
+    int muellerComponentChecked;
     float wavelength_nmChecked;
     float reradiation_nm;
 
     if (channelType(
         channelName, 
-        stokesComponentChecked, 
+        muellerComponentChecked, 
         wavelength_nmChecked, 
-        reradiation_nm) != SPECTRAL_DIAGONAL) {
+        reradiation_nm) != DIAGONAL) {
         throw INTERNAL_ERROR;
     }
 
-    if (stokesComponentChecked != stokesComponent 
+    if (muellerComponentChecked != muellerComponent 
      || wavelength_nmChecked != wavelength_nmChecked) {
         throw INTERNAL_ERROR;
     }
@@ -265,7 +273,7 @@ std::string EXRBiSpectralImage::getChannelName(
 std::string EXRBiSpectralImage::getChannelName(
     float wavelength_nm,
     float reradiation_wavelength_nm
-) {
+) const {
     std::string reradWavelengthStr = std::to_string(reradiation_wavelength_nm);
     std::replace(reradWavelengthStr.begin(), reradWavelengthStr.end(), '.', ',');
 
@@ -283,7 +291,7 @@ std::string EXRBiSpectralImage::getChannelName(
         channelName, 
         stokesComponentChecked, 
         wavelength_nmChecked, 
-        reradiation_wavelength_nmChecked) != SPECTRAL_RERADIATION) {
+        reradiation_wavelength_nmChecked) != RERADIATION) {
         throw INTERNAL_ERROR;
     }
 

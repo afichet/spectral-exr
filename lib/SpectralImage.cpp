@@ -136,7 +136,9 @@ const {
 
 
 const SpectrumAttribute& SpectralImage::channelSensitivity(size_t wl_idx) 
-const { 
+const {
+    assert(wl_idx < _channelSensitivities.size());
+
     return _channelSensitivities[wl_idx]; 
 }
 
@@ -150,6 +152,7 @@ float& SpectralImage::operator()(
     assert(y < height());
     assert(wavelength_idx < nSpectralBands());
     assert(stokes < 4);
+
     return _pixelBuffers[stokes][nSpectralBands() * (y * width() + x) + wavelength_idx];
 }
 
@@ -163,11 +166,14 @@ const float& SpectralImage::operator()(
     assert(y < height());
     assert(wavelength_idx < nSpectralBands());
     assert(stokes < 4);
+
     return _pixelBuffers[stokes][nSpectralBands() * (y * width() + x) + wavelength_idx];
 }
 
 const float& SpectralImage::wavelength_nm(size_t wl_idx) 
 const { 
+    assert(wl_idx < _wavelengths_nm.size());
+
     return _wavelengths_nm[wl_idx]; 
 }
 
@@ -183,7 +189,7 @@ const {
             return 4;
 
             case REFLECTIVE:
-            return 9;
+            return 16;
 
             case UNDEFINED:
             return 0;
@@ -206,18 +212,52 @@ void SpectralImage::componentsFromIndex(
 ) const {
     switch(type()) {
         case EMISSIVE:
+        assert(index < 4);
+
         row = index;
         col = 0;
         break;
 
         case REFLECTIVE:
+        assert(index < 16);
+
         row = index % 4;
         col = index / 4;
         break;
 
         case UNDEFINED:
+        assert(0);
+
         row = 0;
         col = 0;
         break;
     }
+}
+
+
+
+size_t SpectralImage::indexFromComponents(
+    size_t row,
+    size_t col
+) const {
+
+#ifndef NDEBUG
+    switch (type()) {
+        case EMISSIVE:
+        assert(row < 4);
+        assert(col == 0);
+        break;
+
+        case REFLECTIVE:
+        assert(row < 4);
+        assert(col < 4);
+        break;
+
+        default:
+        assert(0);
+        break;
+    }
+#endif
+
+    return 4 * col + row;
 }
