@@ -30,7 +30,7 @@ SpectrumAttribute::SpectrumAttribute(
     const std::string floatRegex  = "(\\d*\\.?\\d*([Ee][+-]?\\d+)?)";
     const std::string units       = "(Y|Z|E|P|T|G|M|k|h|da|d|c|m|u|n|p)?(m|Hz)";
 
-    const std::regex e(floatRegex + units + "," + floatRegex + ";");
+    const std::regex e(floatRegex + units + ":" + floatRegex + ";");
 
 
     std::vector<std::pair<float, float>> wavelengthValues;
@@ -75,7 +75,7 @@ const {
     std::stringstream attrValue;
 
     for (size_t i = 0; i < _wavelengths_nm.size(); i++) {
-        attrValue << _wavelengths_nm[i] << "nm," << _values[i] << ";";
+        attrValue << _wavelengths_nm[i] << "nm:" << _values[i] << ";";
     }
 
     return Imf::StringAttribute(attrValue.str());
