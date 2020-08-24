@@ -19,7 +19,8 @@ class SpectralImage {
 
         enum SpectrumType {
             REFLECTIVE,
-            EMISSIVE
+            EMISSIVE, 
+            UNDEFINED
         };
 
         SpectralImage(
@@ -34,28 +35,19 @@ class SpectralImage {
         virtual void exportChannels(const std::string& path) const;
         virtual void getRGBImage(std::vector<float>& rgbImage) const;
 
-        size_t width()  const { return _width; }
-        size_t height() const { return _height; }
-
-        size_t nSpectralBands()    const { return _wavelengths_nm.size(); }
-        size_t nStokesComponents() const { return (_containsPolarisationData ? 4 : 1); }
-        
-        bool polarised()    const { return _containsPolarisationData; }
-        bool emissive()     const { return _spectrumType == EMISSIVE; }
-        bool reflective()   const { return _spectrumType == REFLECTIVE; }
-        SpectrumType type() const { return _spectrumType; }
-
-        const float& wavelength_nm(size_t wl_idx) const { return _wavelengths_nm[wl_idx]; }
-
         void setCameraResponse(
             const std::vector<float>& wavelengths_nm,
             const std::vector<float>& values
         );
 
+        const SpectrumAttribute& cameraResponse()   const;
+
         void setLensTransmission(
             const std::vector<float>& wavelengths_nm,
             const std::vector<float>& values
         );
+
+        const SpectrumAttribute& lensTransmission() const;
 
         void setChannelSensitivity(
             size_t wl_idx,
@@ -63,10 +55,9 @@ class SpectralImage {
             const std::vector<float>& values
         );
 
-        const SpectrumAttribute& lensTransmission() const { return _lensTransmissionSpectra; }
-        const SpectrumAttribute& cameraResponse()   const { return _cameraReponse; }
-        const std::vector<SpectrumAttribute>& channelSensitivities() const { return _channelSensitivities; }
-        const SpectrumAttribute& channelSensitivity(size_t wl_idx) const { return _channelSensitivities[wl_idx]; }
+        const std::vector<SpectrumAttribute>& channelSensitivities() const;
+
+        const SpectrumAttribute& channelSensitivity(size_t wl_idx) const;
 
         float& operator()(
             size_t x, size_t y, 
@@ -76,11 +67,35 @@ class SpectralImage {
             size_t x, size_t y, 
             size_t wavelength_idx, size_t stokes = 0) const;
 
+        const float& wavelength_nm(size_t wl_idx) const;
+
+        size_t width()  const;
+        size_t height() const;
+
+        size_t nSpectralBands()    const;
+        size_t nPolarsiationComponents() const;
+        
+        bool polarised()    const;
+        bool emissive()     const;
+        bool reflective()   const;
+        SpectrumType type() const;
+
+        void componentsFromIndex(
+            size_t index,
+            size_t& row,
+            size_t& col
+        ) const;
+
     protected:
         size_t _width, _height;
-        std::array<std::vector<float>, 4> _pixelBuffers;
+        
+        // We can have up to 9 pixel buffers:
+        // - 1 for not polarised image
+        // - 4 for emissive polarised images (S0, S1, S2, S3)
+        // - 9 for reflective polarised images (M00, M01, M02, M03, M10, ... M33)
+        std::array<std::vector<float>, 9> _pixelBuffers;
+
         std::vector<float> _wavelengths_nm;
-        bool _isSpectral;
         bool _containsPolarisationData;
         SpectrumType _spectrumType;
 

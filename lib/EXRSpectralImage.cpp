@@ -40,27 +40,35 @@ EXRSpectralImage::EXRSpectralImage(
     const Imf::ChannelList& exrChannels = exrHeader.channels();
 
     std::array<std::vector<std::pair<float, std::string>>, 4> wavelengths_nm_S;
+    bool hasSpectralData = false;
+    _spectrumType = UNDEFINED;
 
     for (Imf::ChannelList::ConstIterator channel = exrChannels.begin(); 
         channel != exrChannels.end(); channel++) {
         // Check if the channel is a spectral one
-        int stokes;
+        int polarisationComponent;
         float wavelength_nm;
-        bool spectralChanel = isSpectralChannel(channel.name(), stokes, wavelength_nm);
+        SpectrumType spectralChanel = isSpectralChannel(channel.name(), polarisationComponent, wavelength_nm);
 
-        if (spectralChanel) {
-            _isSpectral = true;
+        if (spectralChanel != UNDEFINED) {
+            // We want to make sure there is not both reflective and emissive data in the same image
+            if (_spectrumType != UNDEFINED && _spectrumType != spectralChanel) {
+                throw INCORRECT_FORMED_FILE;
+            }
 
-            if (stokes > 0) {
+            hasSpectralData = true;
+            _spectrumType = spectralChanel;
+
+            if (polarisationComponent > 0) {
                 _containsPolarisationData = true;
             }
             
-            wavelengths_nm_S[stokes].push_back(std::make_pair(wavelength_nm, channel.name()));
+            wavelengths_nm_S[polarisationComponent].push_back(std::make_pair(wavelength_nm, channel.name()));
         }
     }
 
     // Sort by ascending wavelengths
-    for (size_t s = 0; s < nStokesComponents(); s++) {
+    for (size_t s = 0; s < nPolarsiationComponents(); s++) {
         std::sort(wavelengths_nm_S[s].begin(), wavelengths_nm_S[s].end());
     }
 
@@ -93,7 +101,7 @@ EXRSpectralImage::EXRSpectralImage(
     }
 
     // We allocate _pixelBuffer memory
-    for (size_t s = 0; s < nStokesComponents(); s++) {
+    for (size_t s = 0; s < nPolarsiationComponents(); s++) {
         _pixelBuffers[s].resize(nSpectralBands() * _width * _height);
     }
 
@@ -103,12 +111,12 @@ EXRSpectralImage::EXRSpectralImage(
 
     Imf::FrameBuffer exrFrameBuffer;
 
-    if (_isSpectral) {
+    if (hasSpectralData) {
         const Imf::PixelType compType = Imf::FLOAT;
         const size_t xStride = sizeof(float) * nSpectralBands();
         const size_t yStride = xStride * _width;
 
-        for (size_t s = 0; s < nStokesComponents(); s++) {
+        for (size_t s = 0; s < nPolarsiationComponents(); s++) {
             for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
                 char* ptrS = (char*)(&_pixelBuffers[s][wl_idx]);
                 exrFrameBuffer.insert(
@@ -127,19 +135,6 @@ EXRSpectralImage::EXRSpectralImage(
     // -----------------------------------------------------------------------
     // Read metadata
     // -----------------------------------------------------------------------
-
-    // Image type: reflective or emissive
-    const Imf::StringAttribute * imageTypeAttr = exrHeader.findTypedAttribute<Imf::StringAttribute>(SPECTRUM_TYPE_ATTR);
-
-    if (imageTypeAttr != nullptr) {
-        if (imageTypeAttr->value() == "emissive") {
-            _spectrumType = EMISSIVE;
-        } else if (imageTypeAttr->value() == "reflective") {
-            _spectrumType = REFLECTIVE;
-        } else {
-            throw INCORRECT_FORMED_FILE;
-        }
-    }
 
     // Lens transmission data
     const Imf::StringAttribute * lensTransmissionAttr = exrHeader.findTypedAttribute<Imf::StringAttribute>(LENS_TRANSMISSION_ATTR);
@@ -212,7 +207,7 @@ void EXRSpectralImage::save(const std::string& filename) const {
     const size_t xStride = sizeof(float) * nSpectralBands();
     const size_t yStride = xStride * width();
 
-    for (size_t s = 0; s < nStokesComponents(); s++) {
+    for (size_t s = 0; s < nPolarsiationComponents(); s++) {
         for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
             // Populate channel name
             std::string channelName = getChannelName(s, _wavelengths_nm[wl_idx]);
@@ -228,11 +223,6 @@ void EXRSpectralImage::save(const std::string& filename) const {
     // -----------------------------------------------------------------------
     // Write metadata
     // -----------------------------------------------------------------------
-
-    exrHeader.insert(SPECTRUM_TYPE_ATTR, 
-        Imf::StringAttribute(
-            (_spectrumType == REFLECTIVE) ? "reflective" : "emissive")
-    );
 
     if (lensTransmission().size() > 0) {
         exrHeader.insert(LENS_TRANSMISSION_ATTR, lensTransmission().getAttribute());
@@ -262,33 +252,45 @@ void EXRSpectralImage::save(const std::string& filename) const {
 }
 
 
-bool EXRSpectralImage::isSpectralChannel(
+SpectralImage::SpectrumType EXRSpectralImage::isSpectralChannel(
     const std::string& channelName,
-    int& stokesComponent,
+    int& polarisationComponent,
     float& wavelength_nm
 ) {
     const std::regex expr
-        ("^S([0-3])\\.(\\d*,?\\d*([Ee][+-]?\\d+)?)(Y|Z|E|P|T|G|M|k|h|da|d|c|m|u|n|p)?(m|Hz)$");
+        ("^((S([0-3]))|(M([0-3])([0-3])))\\.(\\d*,?\\d*([Ee][+-]?\\d+)?)(Y|Z|E|P|T|G|M|k|h|da|d|c|m|u|n|p)?(m|Hz)$");
     std::smatch matches;
 
     const bool matched = std::regex_search(channelName, matches, expr);
 
+    SpectrumType channelType = SpectrumType::UNDEFINED;
+
     if (matched) {
-        if (matches.size() != 6) {
+        if (matches.size() != 11) {
             // Something went wrong with the parsing. This shall not occur.
             throw INTERNAL_ERROR;
         }
-        
-        stokesComponent = std::stoi(matches[1].str());
 
+        if (matches[1].str()[0] == 'S') {
+            channelType = SpectrumType::EMISSIVE;
+            polarisationComponent = std::stoi(matches[3].str());
+        } else if (matches[1].str()[0] == 'M') {
+            channelType = SpectrumType::REFLECTIVE;
+            const size_t row = std::stoi(matches[5].str());
+            const size_t col = std::stoi(matches[6].str());
+            polarisationComponent = col * 4 + row;
+        } else {
+            throw INTERNAL_ERROR;
+        }
+        
         // Get value
-        std::string centralValueStr(matches[2].str());
+        std::string centralValueStr(matches[7].str());
         std::replace(centralValueStr.begin(), centralValueStr.end(), ',', '.');
         float value = std::stof(centralValueStr);
         
         // Convert to nanometers
-        const std::string prefix = matches[4].str();
-        const std::string units = matches[5].str();
+        const std::string prefix = matches[9].str();
+        const std::string units = matches[10].str();
 
         try {
             wavelength_nm = Util::strToNanometers(value, prefix, units);
@@ -299,31 +301,39 @@ bool EXRSpectralImage::isSpectralChannel(
         }
     }
 
-    return matched;
+    return channelType;
 }
 
 
 std::string EXRSpectralImage::getChannelName(
-    int stokesComponent,
+    int polarisationComponent,
     float wavelength_nm
-) {
+) const {
     std::stringstream b;
     std::string wavelengthStr = std::to_string(wavelength_nm);
     std::replace(wavelengthStr.begin(), wavelengthStr.end(), '.', ',');
 
-    b  << "S" << stokesComponent << "." << wavelengthStr << "nm";
+    if (emissive()) {
+        b  << "S" << polarisationComponent;
+    } else {
+        size_t row, col;
+        componentsFromIndex(polarisationComponent, row, col);
+        b << "M" << row << col;
+    }
+    
+    b << "." << wavelengthStr << "nm";
 
     const std::string channelName = b.str();
 
     // "Pedantic" check
-    int stokesComponentChecked;
+    int polarisationComponentChecked;
     float wavelength_nmChecked;
 
-    if (!isSpectralChannel(channelName, stokesComponentChecked, wavelength_nmChecked)) {
+    if (isSpectralChannel(channelName, polarisationComponentChecked, wavelength_nmChecked) != type()) {
         throw INTERNAL_ERROR;
     }
 
-    if (stokesComponentChecked != stokesComponent 
+    if (polarisationComponentChecked != polarisationComponent 
      || wavelength_nmChecked != wavelength_nmChecked) {
         throw INTERNAL_ERROR;
     }

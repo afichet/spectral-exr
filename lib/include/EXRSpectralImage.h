@@ -21,16 +21,16 @@ class EXRSpectralImage : public SpectralImage {
 
         void save(const std::string& filename) const;
 
-        static bool isSpectralChannel(
+        static SpectralImage::SpectrumType isSpectralChannel(
             const std::string& channelName, 
-            int& stokesComponent, 
+            int& polarisationComponent, 
             float& wavelengths_nm
         );
 
-        static std::string getChannelName(
-            int stokesComponent,
+        std::string getChannelName(
+            int polarisationComponent,
             float wavelength_nm
-        );
+        ) const;
 
     static constexpr const char* SPECTRUM_TYPE_ATTR     = "Spectrum type"; 
     static constexpr const char* LENS_TRANSMISSION_ATTR = "Lens transmission"; 

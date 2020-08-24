@@ -18,11 +18,10 @@ SpectralImage::SpectralImage(
     : _width(width)
     , _height(height)
     , _wavelengths_nm(wavelengths_nm)
-    , _isSpectral(!wavelengths_nm.empty())
     , _containsPolarisationData(containsPolarisationData)
     , _spectrumType(type)
 {
-    for (size_t s = 0; s < nStokesComponents(); s++) {
+    for (size_t s = 0; s < nPolarsiationComponents(); s++) {
         _pixelBuffers[s].resize(nSpectralBands() * _width * _height);
     }
 
@@ -35,11 +34,21 @@ const {
     const size_t xStride = sizeof(float) * nSpectralBands();
     const size_t yStride = xStride * width();
 
-    for (size_t s = 0; s < nStokesComponents(); s++) {
+    for (size_t s = 0; s < nPolarsiationComponents(); s++) {
+        std::stringstream filePrefix;
+
+        if (emissive()) {
+            filePrefix << "S" << s;
+        } else {
+            size_t row, col;
+            componentsFromIndex(s, row, col);
+            filePrefix << "M" << row << col;
+        }
+
         for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
             const float& wavelength = _wavelengths_nm[wl_idx];
             std::stringstream filepath;
-            filepath << path << "/" << "S" << s << " - " << wavelength << "nm.exr";
+            filepath << path << "/" << filePrefix.str() << " - " << wavelength << "nm.exr";
 
             Imf::Header exrHeader(width(), height());
             Imf::ChannelList & exrChannels = exrHeader.channels();
@@ -85,6 +94,12 @@ void SpectralImage::setCameraResponse(
 }
 
 
+const SpectrumAttribute& SpectralImage::cameraResponse() 
+const { 
+    return _cameraReponse; 
+}
+
+
 void SpectralImage::setLensTransmission(
     const std::vector<float>& wavelengths_nm,
     const std::vector<float>& values
@@ -93,6 +108,13 @@ void SpectralImage::setLensTransmission(
 
     _lensTransmissionSpectra = SpectrumAttribute(wavelengths_nm, values);
 }
+
+
+const SpectrumAttribute& SpectralImage::lensTransmission() 
+const { 
+    return _lensTransmissionSpectra; 
+}
+
 
 
 void SpectralImage::setChannelSensitivity(
@@ -104,6 +126,18 @@ void SpectralImage::setChannelSensitivity(
     assert(wavelengths_nm.size() == values.size());
     
     _channelSensitivities[wl_idx] = SpectrumAttribute(wavelengths_nm, values);
+}
+
+
+const std::vector<SpectrumAttribute>& SpectralImage::channelSensitivities() 
+const { 
+    return _channelSensitivities; 
+}
+
+
+const SpectrumAttribute& SpectralImage::channelSensitivity(size_t wl_idx) 
+const { 
+    return _channelSensitivities[wl_idx]; 
 }
 
 
@@ -130,4 +164,60 @@ const float& SpectralImage::operator()(
     assert(wavelength_idx < nSpectralBands());
     assert(stokes < 4);
     return _pixelBuffers[stokes][nSpectralBands() * (y * width() + x) + wavelength_idx];
+}
+
+const float& SpectralImage::wavelength_nm(size_t wl_idx) 
+const { 
+    return _wavelengths_nm[wl_idx]; 
+}
+
+size_t SpectralImage::width()  const { return _width; }
+size_t SpectralImage::height() const { return _height; }
+size_t SpectralImage::nSpectralBands() const { return _wavelengths_nm.size(); }
+
+size_t SpectralImage::nPolarsiationComponents() 
+const { 
+    if (polarised()) {
+        switch(type()) {
+            case EMISSIVE:
+            return 4;
+
+            case REFLECTIVE:
+            return 9;
+
+            case UNDEFINED:
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+bool SpectralImage::polarised()    const { return _containsPolarisationData; }
+bool SpectralImage::emissive()     const { return _spectrumType == EMISSIVE; }
+bool SpectralImage::reflective()   const { return _spectrumType == REFLECTIVE; }
+SpectralImage::SpectrumType SpectralImage::type() const { return _spectrumType; }
+
+
+void SpectralImage::componentsFromIndex(
+    size_t index,
+    size_t& row,
+    size_t& col
+) const {
+    switch(type()) {
+        case EMISSIVE:
+        row = index;
+        col = 0;
+        break;
+
+        case REFLECTIVE:
+        row = index % 4;
+        col = index / 4;
+        break;
+
+        case UNDEFINED:
+        row = 0;
+        col = 0;
+        break;
+    }
 }
