@@ -399,7 +399,7 @@ std::string EXRBiSpectralImage::getReradiationChannelName(
     std::replace(reradWavelengthStr.begin(), reradWavelengthStr.end(), '.', ',');
 
     std::stringstream b;
-    b << getChannelName(0, wavelength_nm) << '.' << reradWavelengthStr << "nm";
+    b << getDiagonalChannelName(0, wavelength_nm) << '.' << reradWavelengthStr << "nm";
 
     const std::string channelName = b.str();
 
