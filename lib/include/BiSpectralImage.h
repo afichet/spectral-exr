@@ -3,7 +3,7 @@
 #include "SpectralImage.h"
 
 
-class BiSpectralImage: public SpectralImage {
+class BiSpectralImage: protected SpectralImage {
     public:
         BiSpectralImage(
             size_t width = 0, size_t height = 0,
@@ -19,7 +19,7 @@ class BiSpectralImage: public SpectralImage {
             return nSpectralBands() * (nSpectralBands() - 1) / 2;
         }
 
-        int idxFromWavelengthIdx(
+        size_t idxFromWavelengthIdx(
             size_t wlFrom_idx,
             size_t wlTo_idx
         ) const {
@@ -29,6 +29,30 @@ class BiSpectralImage: public SpectralImage {
                 return -1;
             }
         }
+
+        void wavelengthsIdxFromIdx(
+            size_t rerad_idx,
+            size_t& wlFrom_idx,
+            size_t& wlTo_idx
+        ) const {
+            float k = std::floor((std::sqrt(1.F + 8.F * float(rerad_idx)) - 1.F) / 2.F);
+            float j = rerad_idx - k * (k + 1) / 2.F;
+
+            wlFrom_idx = j;
+            wlTo_idx = k + 1;
+        }
+
+
+        virtual float& operator()(
+            size_t x, size_t y, 
+            size_t wavelengthFrom_idx, size_t wavelengthTo_idx,
+            size_t polarsiationComponent = 0);
+
+        virtual const float& operator()(
+            size_t x, size_t y, 
+            size_t wavelengthFrom_idx, size_t wavelengthTo_idx,
+            size_t polarsiationComponent = 0) const;
+
 
     protected:
         // Upper right triangular matrices for each pixel

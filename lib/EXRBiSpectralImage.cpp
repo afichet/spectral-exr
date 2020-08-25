@@ -10,6 +10,14 @@
 
 
 EXRBiSpectralImage::EXRBiSpectralImage(
+    size_t width, size_t height,
+    const std::vector<float>& wavelengths_nm,
+    bool containsPolarisationData
+) : BiSpectralImage(width, height, wavelengths_nm, containsPolarisationData)
+{}
+
+
+EXRBiSpectralImage::EXRBiSpectralImage(
     const std::string& filename
 )
     : BiSpectralImage()
@@ -192,7 +200,6 @@ const {
     Imf::Header exrHeader(width(), height());
     Imf::ChannelList & exrChannels = exrHeader.channels();
 
-
     // -----------------------------------------------------------------------
     // Write the pixel data
     // -----------------------------------------------------------------------
@@ -228,15 +235,36 @@ const {
             std::string channelName = getDiagonalChannelName(s, _wavelengths_nm[wl_idx]);
             exrChannels.insert(channelName, Imf::Channel(compType));
 
-            char* ptrS = (char*)(&_pixelBuffers[s][wl_idx]);
+            char* framebuffer = (char*)(&_pixelBuffers[s][wl_idx]);
             exrFrameBuffer.insert(
                 channelName, 
-                Imf::Slice(compType, ptrS, xStrideDiagonal, yStrideDiagonal));
+                Imf::Slice(compType, framebuffer, xStrideDiagonal, yStrideDiagonal));
         }
     }
 
     // Write the reradiation
+    const size_t xStrideReradiation = sizeof(float) * reradiationSize();
+    const size_t yStrideReradiation = xStrideReradiation * _width;
 
+    for (size_t rr = 0; rr < reradiationSize(); rr++) {
+            size_t wlFromIdx, wlToIdx;
+            wavelengthsIdxFromIdx(rr, wlFromIdx, wlToIdx);
+
+            std::string channelName = getReradiationChannelName(
+                _wavelengths_nm[wlFromIdx],
+                _wavelengths_nm[wlToIdx]);
+
+            exrChannels.insert(channelName, Imf::Channel(compType));
+
+            char* framebuffer = (char*)(&_reradiation[rr]);
+            exrFrameBuffer.insert(
+                channelName, 
+                Imf::Slice(compType, framebuffer, xStrideReradiation, yStrideReradiation));
+    }
+
+    Imf::OutputFile exrOut(filename.c_str(), exrHeader);
+    exrOut.setFrameBuffer(exrFrameBuffer);
+    exrOut.writePixels(height());
 }
 
 
@@ -364,12 +392,15 @@ std::string EXRBiSpectralImage::getDiagonalChannelName(
     std::stringstream b;
     std::string wavelengthStr = std::to_string(wavelength_nm);
     std::replace(wavelengthStr.begin(), wavelengthStr.end(), '.', ',');
+    size_t row, col;
+    componentsFromIndex(muellerComponent, row, col);
 
-    b  << "S" << muellerComponent << "." << wavelengthStr << "nm";
+    b  << "M" << row << col << "." << wavelengthStr << "nm";
 
     const std::string channelName = b.str();
 
     // "Pedantic" check
+#ifndef NDEBUG
     int muellerComponentChecked;
     float wavelength_nmChecked;
     float reradiation_nm;
@@ -386,6 +417,7 @@ std::string EXRBiSpectralImage::getDiagonalChannelName(
      || wavelength_nmChecked != wavelength_nmChecked) {
         throw INTERNAL_ERROR;
     }
+#endif
 
     return channelName;
 }
@@ -404,6 +436,7 @@ std::string EXRBiSpectralImage::getReradiationChannelName(
     const std::string channelName = b.str();
 
     // "Pedantic" check
+#ifndef NDEBUG
     int stokesComponentChecked;
     float wavelength_nmChecked;
     float reradiation_wavelength_nmChecked;
@@ -421,6 +454,7 @@ std::string EXRBiSpectralImage::getReradiationChannelName(
      || reradiation_wavelength_nmChecked != reradiation_wavelength_nm) {
         throw INTERNAL_ERROR;
     }
+#endif
 
     return channelName;
 }

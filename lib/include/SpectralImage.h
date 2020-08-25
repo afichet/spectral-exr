@@ -59,13 +59,13 @@ class SpectralImage {
 
         const SpectrumAttribute& channelSensitivity(size_t wl_idx) const;
 
-        float& operator()(
+        virtual float& operator()(
             size_t x, size_t y, 
-            size_t wavelength_idx, size_t stokes = 0);
+            size_t wavelength_idx, size_t polarsiationComponent = 0);
 
-        const float& operator()(
+        virtual const float& operator()(
             size_t x, size_t y, 
-            size_t wavelength_idx, size_t stokes = 0) const;
+            size_t wavelength_idx, size_t polarsiationComponent = 0) const;
 
         const float& wavelength_nm(size_t wl_idx) const;
 

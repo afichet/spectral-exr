@@ -116,7 +116,6 @@ const {
 }
 
 
-
 void SpectralImage::setChannelSensitivity(
     size_t wl_idx,
     const std::vector<float>& wavelengths_nm,
@@ -146,29 +145,30 @@ const {
 float& SpectralImage::operator()(
     size_t x, size_t y,
     size_t wavelength_idx, 
-    size_t stokes
+    size_t polarisationComponent
 ) {
     assert(x < width());
     assert(y < height());
     assert(wavelength_idx < nSpectralBands());
-    assert(stokes < 4);
+    assert(polarisationComponent < 4);
 
-    return _pixelBuffers[stokes][nSpectralBands() * (y * width() + x) + wavelength_idx];
+    return _pixelBuffers[polarisationComponent][nSpectralBands() * (y * width() + x) + wavelength_idx];
 }
 
 
 const float& SpectralImage::operator()(
     size_t x, size_t y,
     size_t wavelength_idx, 
-    size_t stokes
+    size_t polarisationComponent
 ) const {
     assert(x < width());
     assert(y < height());
     assert(wavelength_idx < nSpectralBands());
-    assert(stokes < 4);
+    assert(polarisationComponent < 4);
 
-    return _pixelBuffers[stokes][nSpectralBands() * (y * width() + x) + wavelength_idx];
+    return _pixelBuffers[polarisationComponent][nSpectralBands() * (y * width() + x) + wavelength_idx];
 }
+
 
 const float& SpectralImage::wavelength_nm(size_t wl_idx) 
 const { 
@@ -177,9 +177,11 @@ const {
     return _wavelengths_nm[wl_idx]; 
 }
 
+
 size_t SpectralImage::width()  const { return _width; }
 size_t SpectralImage::height() const { return _height; }
 size_t SpectralImage::nSpectralBands() const { return _wavelengths_nm.size(); }
+
 
 size_t SpectralImage::nPolarsiationComponents() 
 const { 
@@ -198,6 +200,7 @@ const {
 
     return 1;
 }
+
 
 bool SpectralImage::polarised()    const { return _containsPolarisationData; }
 bool SpectralImage::emissive()     const { return _spectrumType == EMISSIVE; }
@@ -233,7 +236,6 @@ void SpectralImage::componentsFromIndex(
         break;
     }
 }
-
 
 
 size_t SpectralImage::indexFromComponents(
