@@ -73,6 +73,11 @@ int main(int argc, char* argv[]) {
 
     case SpectralImage::REFLECTIVE:
         additionalInfo << "reflective" << std::endl;
+        break;
+
+    default:
+        additionalInfo << "unknown" << std::endl;
+        break;
     }
     
 

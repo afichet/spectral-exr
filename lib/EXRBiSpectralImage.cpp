@@ -208,7 +208,6 @@ const {
     Imf::FrameBuffer exrFrameBuffer;
     const Imf::PixelType compType = Imf::FLOAT;
 
-#warning This shall be adapted for bi-spectral
     // Write RGB version
     std::vector<float> rgbImage;
     getRGBImage(rgbImage);
