@@ -92,6 +92,96 @@ const {
     return _cmfFirstWavelength_nm + index;
 }
 
+void SpectrumConverter::bispectralToXYZ(
+    std::vector<float>& wavelengths_nm,
+    const float* diagonal,
+    const float* reradiation,
+    std::array<float, 3>& XYZ
+) const {
+    memset(&XYZ[0], 0, 3*sizeof(float));
+
+    if (_emissiveSpectrum) { 
+        return spectrumToXYZ(wavelengths_nm, diagonal, XYZ);
+    }
+
+    if (wavelengths_nm.size() == 0) {
+        return;
+    }
+
+    const float illuminant_last_wavelength = _illuminantFirstWavelenght_nm + _illuminantSPD.size() - 1;
+    const float start_wavelength = std::max(std::max(_illuminantFirstWavelenght_nm, firstWavelength()), wavelengths_nm.front());
+    const float end_wavelength   = std::min(std::min(illuminant_last_wavelength, lastWavelength()), wavelengths_nm.back());
+
+    // Early exit, selection out of range
+    if (end_wavelength < start_wavelength) {
+        return ;
+    }
+    /* todo
+    assert(start_wavelength <= end_wavelength);
+
+    float normalisation_factor(0);
+
+    for (size_t idx_value = 0; idx_value < wavelengths_nm.size() - 1; idx_value++) {
+        float wl_a = wavelengths_nm[idx_value];
+        float wl_b = wavelengths_nm[idx_value + 1];
+
+        // We have not reached yet the starting point
+        if (start_wavelength > wl_b) {
+            continue;
+        }
+
+        // We have finished the integration
+        if (end_wavelength < wl_a) {
+            break;
+        }
+
+        if (start_wavelength > wl_a) {
+            wl_a = start_wavelength;
+        }
+
+        if (end_wavelength < wl_b) {
+            wl_b = end_wavelength;
+        }
+
+        const size_t idx_curve_start = cmfWavelengthIndex(wl_a);
+        size_t       idx_curve_end   = cmfWavelengthIndex(wl_b);
+
+        // On last intervall we need to include the last wavelength of the spectrum
+        if (idx_value == wavelengths_nm.size() - 2) {
+            idx_curve_end = idx_curve_end + 1;
+        }
+
+        for (size_t idx_curve = idx_curve_start; idx_curve < idx_curve_end; idx_curve++) {
+            const float curr_wl = cmfWavelengthValue(idx_curve);
+
+            const size_t idx_illu_a = curr_wl - _illuminantFirstWavelenght_nm;
+            assert(curr_wl >= _illuminantFirstWavelenght_nm);
+            assert(idx_illu_a < _illuminantSPD.size());
+
+            const float illu_value = _illuminantSPD[idx_illu_a];
+
+            normalisation_factor += illu_value * _xyzCmfs[1][idx_curve]; // Y
+
+            const float curr_value = 
+                illu_value * Util::interp(
+                                curr_wl,
+                                wavelengths_nm[idx_value],
+                                wavelengths_nm[idx_value + 1],
+                                spectrum[idx_value],
+                                spectrum[idx_value + 1]);
+
+            for (size_t c = 0; c < 3; c++) {
+                XYZ[c] += curr_value * _xyzCmfs[c][idx_curve];
+            }
+        }
+    }
+
+    for (size_t c = 0; c < 3; c++) {
+        XYZ[c] /= normalisation_factor;
+    }
+    */
+}
+
 
 void SpectrumConverter::emissiveSpectrumToXYZ(
     const std::vector<float>& wavelengths_nm,

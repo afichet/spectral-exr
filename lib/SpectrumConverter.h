@@ -36,6 +36,13 @@ class SpectrumConverter {
         size_t cmfWavelengthIndex(float wavelength_nm) const;
         size_t cmfWavelengthValue(size_t index) const;
 
+        void bispectralToXYZ(
+            std::vector<float>& wavelengths_nm,
+            const float* diagonal,
+            const float* reradiation,
+            std::array<float, 3>& XYZ
+        ) const;
+
     protected:
         void emissiveSpectrumToXYZ(
             const std::vector<float>& wavelengths_nm,

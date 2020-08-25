@@ -6,10 +6,10 @@
 
 #include "fluo_data.h"
 
-int main(int argc, char *argv[]) {
 
-    const size_t width = 300;
-    const size_t height = 300;
+int main(/*int argc, char *argv[]*/) {
+    const size_t width = 150;
+    const size_t height = 150;
 
     // Make it square
     const float wl_start = std::max(wi_start, wo_start);
@@ -22,6 +22,7 @@ int main(int argc, char *argv[]) {
     const size_t wl_size = std::min(wi_size, wo_size);
 
     std::vector<float> wavelengths_nm(wl_size);
+
     for (size_t i = 0; i < wl_size; i++) {
       wavelengths_nm[i] = wl_start + i * wl_inc;
     }
@@ -37,6 +38,7 @@ int main(int argc, char *argv[]) {
         for (size_t x = 0; x < width; x++) {
             size_t r_id = x / x_sz;
 
+            // Checkerboard patern
             const auto ptr = (((c_id % 2) + (r_id % 2)) % 2 == 0)
                                 ? fluorescent_pink
                                 : fluorescent_yellow;
