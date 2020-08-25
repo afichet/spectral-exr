@@ -287,7 +287,7 @@ SpectralImage::SpectrumType EXRSpectralImage::channelType(
         // Get value
         std::string centralValueStr(matches[7].str());
         std::replace(centralValueStr.begin(), centralValueStr.end(), ',', '.');
-        float value = std::stof(centralValueStr);
+        const float value = std::stof(centralValueStr);
         
         // Convert to nanometers
         const std::string prefix = matches[9].str();

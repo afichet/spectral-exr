@@ -1,4 +1,5 @@
 #include <EXRBiSpectralImage.h>
+#include "Util.h"
 
 #include <regex>
 #include <algorithm>
@@ -295,8 +296,13 @@ EXRBiSpectralImage::ChannelType EXRBiSpectralImage::channelType(
         
         muellerComponent = indexFromComponents(row, col);
 
-        wavelength_nm = toWavelength_nm(
-            matches[3].str(), // Comma separated floating point value
+        // Get value illumination
+        std::string centralValueStr(matches[3].str());
+        std::replace(centralValueStr.begin(), centralValueStr.end(), ',', '.');
+        const float value = std::stof(centralValueStr);
+
+        wavelength_nm = Util::strToNanometers(
+            value, // Comma separated floating point value
             matches[5].str(), // Unit multiplier
             matches[6].str()  // Units
             );
@@ -320,14 +326,24 @@ EXRBiSpectralImage::ChannelType EXRBiSpectralImage::channelType(
         // TODO: double check that. But reradiation shall not be polarising I think...
         if (muellerComponent != 0) return OTHER;
 
-        wavelength_nm = toWavelength_nm(
-            matches[3].str(), // Comma separated floating point value
+        // Get value illumination
+        std::string centralValueStrI(matches[3].str());
+        std::replace(centralValueStrI.begin(), centralValueStrI.end(), ',', '.');
+        const float value_i = std::stof(centralValueStrI);
+
+        wavelength_nm = Util::strToNanometers(
+            value_i,             
             matches[5].str(), // Unit multiplier
             matches[6].str()  // Units
             );
 
-        reradiation_wavelength_nm = toWavelength_nm(
-            matches[7].str(), // Comma separated floating point value
+        // Get value reradiation
+        std::string centralValueStrO(matches[7].str());
+        std::replace(centralValueStrO.begin(), centralValueStrO.end(), ',', '.');
+        const float value_o = std::stof(centralValueStrO);
+
+        reradiation_wavelength_nm = Util::strToNanometers(
+            value_o,
             matches[9].str(), // Unit multiplier
             matches[10].str() // Units
             );
@@ -336,51 +352,6 @@ EXRBiSpectralImage::ChannelType EXRBiSpectralImage::channelType(
     }
 
     return OTHER;
-}
-
-
-float EXRBiSpectralImage::toWavelength_nm(
-    const std::string& valueStr,
-    const std::string& multiplierStr,
-    const std::string& unitStr
-) {
-    float wavelength_nm;
-
-    // Get value
-    std::string localValueStr = valueStr;
-    std::replace(localValueStr.begin(), localValueStr.end(), ',', '.');
-    float value = std::stof(localValueStr);
-    
-    // Apply multiplier
-    const std::map<std::string, float> unit_prefix = {
-        {"Y", 1e24}, {"Z", 1e21}, {"E", 1e18}, {"P", 1e15}, {"T", 1e12},
-        {"G", 1e9} , {"M", 1e6} , {"k", 1e3} , {"h", 1e2} , {"da", 1e1},
-        {"d", 1e-1}, {"c", 1e-2}, {"m", 1e-3}, {"u", 1e-6}, {"n", 1e-9},
-        {"p", 1e-12}
-    };
-
-    if (multiplierStr.size() > 0) {
-        try {
-            value *= unit_prefix.at(multiplierStr);
-        } catch (std::out_of_range& exception) {
-            // Unknown unit multiplier
-            // Something went wrong with the parsing. This shall not occur.
-            throw INTERNAL_ERROR;
-        }
-    }
-
-    // Apply units
-    if (unitStr == "Hz") {
-        wavelength_nm = 299792458.F/value * 1e9;
-    } else if (unitStr == "m") {
-        wavelength_nm = value * 1e9;
-    } else {
-        // Unknown unit
-        // Something went wrong with the parsing. This shall not occur.
-        throw INTERNAL_ERROR;
-    }
-
-    return wavelength_nm;
 }
 
         

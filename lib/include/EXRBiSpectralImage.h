@@ -30,12 +30,6 @@ class EXRBiSpectralImage: public BiSpectralImage {
             float& reradiation_wavelength_nm
         ) const;
 
-        static float toWavelength_nm(
-            const std::string& value,
-            const std::string& multiplier,
-            const std::string& unit
-        );
-        
         std::string getDiagonalChannelName(
             int muellerComponent,
             float wavelength_nm
