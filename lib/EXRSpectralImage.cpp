@@ -175,7 +175,8 @@ EXRSpectralImage::EXRSpectralImage(
 }
 
 
-void EXRSpectralImage::save(const std::string& filename) const {
+void EXRSpectralImage::save(const std::string& filename) 
+const {
     Imf::Header exrHeader(width(), height());
     Imf::ChannelList & exrChannels = exrHeader.channels();
 

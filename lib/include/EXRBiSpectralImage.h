@@ -15,7 +15,7 @@ class EXRBiSpectralImage: public BiSpectralImage {
             const std::string& filename
         );
 
-        //void save(const std::string& filename) const;
+        void save(const std::string& filename) const;
 
         ChannelType channelType(
             const std::string& channelName, 
@@ -30,12 +30,12 @@ class EXRBiSpectralImage: public BiSpectralImage {
             const std::string& unit
         );
         
-        std::string getChannelName(
+        std::string getDiagonalChannelName(
             int muellerComponent,
             float wavelength_nm
         ) const;
 
-        std::string getChannelName(
+        std::string getReradiationChannelName(
             float wavelength_nm,
             float reradiation_wavelength_nm
         ) const;

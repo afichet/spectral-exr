@@ -21,10 +21,13 @@ EXRBiSpectralImage::EXRBiSpectralImage(
     _width  = exrDataWindow.max.x - exrDataWindow.min.x + 1;
     _height = exrDataWindow.max.y - exrDataWindow.min.y + 1;
 
-    // Determine position of the channels
+    // -----------------------------------------------------------------------
+    // Determine channels' position
+    // -----------------------------------------------------------------------
+
     const Imf::ChannelList& exrChannels = exrHeader.channels();
 
-    std::array<std::vector<std::pair<float, std::string>>, 4> diagonal_wavelengths_nm_S;
+    std::array<std::vector<std::pair<float, std::string>>, 4> diagonal_wavelengths_nm;
     std::vector<std::pair<std::pair<float, float>, std::string>> reradiation_wavelengths_nm;
 
     for (Imf::ChannelList::ConstIterator channel = exrChannels.begin(); 
@@ -48,7 +51,7 @@ EXRBiSpectralImage::EXRBiSpectralImage(
 
         switch(currChannelType) {
             case DIAGONAL:
-                diagonal_wavelengths_nm_S[muellerComponent].push_back(
+                diagonal_wavelengths_nm[muellerComponent].push_back(
                     std::make_pair(
                         in_wavelength_nm, 
                         channel.name()));
@@ -71,7 +74,7 @@ EXRBiSpectralImage::EXRBiSpectralImage(
 
     // Sort by ascending wavelengths
     for (size_t s = 0; s < nPolarsiationComponents(); s++) {
-        std::sort(diagonal_wavelengths_nm_S[s].begin(), diagonal_wavelengths_nm_S[s].end());
+        std::sort(diagonal_wavelengths_nm[s].begin(), diagonal_wavelengths_nm[s].end());
     }
 
     struct {
@@ -92,18 +95,18 @@ EXRBiSpectralImage::EXRBiSpectralImage(
     // Check we have the same wavelength for each stoke component on the main diagonal
     if (_containsPolarisationData) {
         // Wavelength vectors must be of the same size
-        const float base_size = diagonal_wavelengths_nm_S[0].size();
+        const float base_size = diagonal_wavelengths_nm[0].size();
         for (size_t s = 1; s < 4; s++) {
-            if (diagonal_wavelengths_nm_S[s].size() != base_size) {
+            if (diagonal_wavelengths_nm[s].size() != base_size) {
                 throw INCORRECT_FORMED_FILE;
             }
         }
 
         // Wavelengths must correspond
-        for (size_t wl_idx = 0; wl_idx < diagonal_wavelengths_nm_S[0].size(); wl_idx++) {
-            const float base_wl = diagonal_wavelengths_nm_S[0][wl_idx].first;
+        for (size_t wl_idx = 0; wl_idx < diagonal_wavelengths_nm[0].size(); wl_idx++) {
+            const float base_wl = diagonal_wavelengths_nm[0][wl_idx].first;
             for (size_t s = 1; s < 4; s++) {
-                if (diagonal_wavelengths_nm_S[s][wl_idx].first != base_wl) {
+                if (diagonal_wavelengths_nm[s][wl_idx].first != base_wl) {
                     throw INCORRECT_FORMED_FILE;
                 }
             }
@@ -111,11 +114,129 @@ EXRBiSpectralImage::EXRBiSpectralImage(
     }
 
     // Now, we can populate the local wavelength vector
-    _wavelengths_nm.reserve(diagonal_wavelengths_nm_S[0].size());
+    _wavelengths_nm.reserve(diagonal_wavelengths_nm[0].size());
 
-    for (const auto& wl_index: diagonal_wavelengths_nm_S[0]) {
+    for (const auto& wl_index: diagonal_wavelengths_nm[0]) {
         _wavelengths_nm.push_back(wl_index.first);
     }
+
+    // Check every single reradiation have all upper wavelength values
+    // Note: this shall not be mandatory in the format but, we only support that for now
+    if (reradiation_wavelengths_nm.size() > 0) {
+        float currWl = reradiation_wavelengths_nm[0].first.first;
+        size_t wlReradCount = 0;
+        size_t wlIdx = 0;
+        for (const auto& rr: reradiation_wavelengths_nm) {
+            if (rr.first.first == currWl) {
+                if (rr.first.first != wavelength_nm(wlIdx)) {
+                    std::cerr << "We need full spectral reradiation specification" << std::endl;
+                }
+                wlReradCount++;
+            } else {
+                if (wlReradCount != nSpectralBands() - wlIdx - 1) {
+                    std::cerr << "We need full spectral reradiation specification" << std::endl;
+                }
+                wlIdx++;
+                wlReradCount = 0;
+            }
+        }
+    }
+
+    // Allocate memory
+
+    for (size_t s = 0; s < nPolarsiationComponents(); s++) {
+        _pixelBuffers[s].resize(nSpectralBands() * _width * _height);
+    }
+
+    _reradiation.resize(reradiationSize() * _width * _height);
+
+    // -----------------------------------------------------------------------
+    // Read the pixel data
+    // -----------------------------------------------------------------------
+
+    Imf::FrameBuffer exrFrameBuffer;
+
+    const Imf::PixelType compType = Imf::FLOAT;
+    
+    // Set the diagonal for reading
+    const size_t xStrideDiagonal = sizeof(float) * nSpectralBands();
+    const size_t yStrideDiagnoal = xStrideDiagonal * _width;
+
+    for (size_t s = 0; s < nPolarsiationComponents(); s++) {
+        for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
+            char* framebuffer = (char*)(&_pixelBuffers[s][wl_idx]);
+            exrFrameBuffer.insert(
+                diagonal_wavelengths_nm[s][wl_idx].second, 
+                Imf::Slice(compType, framebuffer, xStrideDiagonal, yStrideDiagnoal));
+        }
+    }
+
+    // Set the reradiation part fo reading
+    const size_t xStrideReradiation = sizeof(float) * reradiationSize();
+    const size_t yStrideReradiation = xStrideReradiation * _width;
+
+    for (size_t rr = 0; rr < reradiationSize(); rr++) {
+            char* framebuffer = (char*)(&_reradiation[rr]);
+            exrFrameBuffer.insert(
+                reradiation_wavelengths_nm[rr].second, 
+                Imf::Slice(compType, framebuffer, xStrideReradiation, yStrideReradiation));
+    }
+
+    exrIn.setFrameBuffer(exrFrameBuffer);
+    exrIn.readPixels(exrDataWindow.min.y, exrDataWindow.max.y);
+}
+
+
+void EXRBiSpectralImage::save(const std::string& filename) 
+const {
+    Imf::Header exrHeader(width(), height());
+    Imf::ChannelList & exrChannels = exrHeader.channels();
+
+
+    // -----------------------------------------------------------------------
+    // Write the pixel data
+    // -----------------------------------------------------------------------
+
+    // Layout framebuffer
+    Imf::FrameBuffer exrFrameBuffer;
+    const Imf::PixelType compType = Imf::FLOAT;
+
+#warning This shall be adapted for bi-spectral
+    // Write RGB version
+    std::vector<float> rgbImage;
+    getRGBImage(rgbImage);
+
+    const std::array<std::string, 3> rgbChannels = {"R", "G", "B"};
+    const size_t xStrideRGB = sizeof(float) * 3;
+    const size_t yStrideRGB = xStrideRGB * width();
+
+    for (size_t c = 0; c < 3; c++) {
+        char* ptrRGB = (char*)(&rgbImage[c]);
+        exrChannels.insert(rgbChannels[c], Imf::Channel(compType));
+        exrFrameBuffer.insert(
+                rgbChannels[c], 
+                Imf::Slice(compType, ptrRGB, xStrideRGB, yStrideRGB));
+    }
+
+    // Write spectral version
+    const size_t xStrideDiagonal = sizeof(float) * nSpectralBands();
+    const size_t yStrideDiagonal = xStrideDiagonal * width();
+
+    for (size_t s = 0; s < nPolarsiationComponents(); s++) {
+        for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
+            // Populate channel name
+            std::string channelName = getDiagonalChannelName(s, _wavelengths_nm[wl_idx]);
+            exrChannels.insert(channelName, Imf::Channel(compType));
+
+            char* ptrS = (char*)(&_pixelBuffers[s][wl_idx]);
+            exrFrameBuffer.insert(
+                channelName, 
+                Imf::Slice(compType, ptrS, xStrideDiagonal, yStrideDiagonal));
+        }
+    }
+
+    // Write the reradiation
+
 }
 
 
@@ -236,7 +357,7 @@ float EXRBiSpectralImage::toWavelength_nm(
 }
 
         
-std::string EXRBiSpectralImage::getChannelName(
+std::string EXRBiSpectralImage::getDiagonalChannelName(
     int muellerComponent,
     float wavelength_nm
 ) const {
@@ -270,7 +391,7 @@ std::string EXRBiSpectralImage::getChannelName(
 }
 
 
-std::string EXRBiSpectralImage::getChannelName(
+std::string EXRBiSpectralImage::getReradiationChannelName(
     float wavelength_nm,
     float reradiation_wavelength_nm
 ) const {
