@@ -1,4 +1,6 @@
 #include <BiSpectralImage.h>
+#include "SpectrumConverter.h"
+
 #include <cassert>
 
 
@@ -16,6 +18,25 @@ BiSpectralImage::BiSpectralImage(
     _reradiation.resize(reradiationSize() * _width * _height);
 }
 
+
+void BiSpectralImage::getRGBImage(std::vector<float>& rgbImage) 
+const {
+    rgbImage.resize(3 * width() * height());
+    SpectrumConverter sc(SpectrumConverter::REFLECTIVE);
+    
+    std::array<float, 3> rgb;
+
+    for (size_t i = 0; i < width() * height(); i++) {
+        sc.spectrumToRGB(
+            _wavelengths_nm, 
+            &_pixelBuffers[0][nSpectralBands() * i],
+            &_reradiation[reradiationSize() * i],
+            rgb
+            );
+
+        memcpy(&rgbImage[3 * i], &rgb[0], 3 * sizeof(float));
+    }
+}
 
 float& BiSpectralImage::operator()(
     size_t x, size_t y, 

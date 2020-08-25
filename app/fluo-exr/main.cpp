@@ -46,7 +46,7 @@ int main(/*int argc, char *argv[]*/) {
             for (size_t wl_i_idx = 0; wl_i_idx < wl_size; wl_i_idx++) {
                 for (size_t wl_o_idx = wl_i_idx; wl_o_idx < wl_size; wl_o_idx++) {
                     fluoImage(x, y, wl_i_idx, wl_o_idx) =
-                        ptr[wl_o_idx + wl_o_idx_start][wl_i_idx + wl_i_idx_start];
+                        std::max(0.F, ptr[wl_o_idx + wl_o_idx_start][wl_i_idx + wl_i_idx_start]);
                 }
             }
         }

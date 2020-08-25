@@ -53,4 +53,16 @@ class Util {
             
             return wavelength_nm;
         }
+
+
+        static size_t idxFromWavelengthIdx(
+            size_t wlFrom_idx,
+            size_t wlTo_idx
+        ) {
+            if (wlFrom_idx < wlTo_idx) {
+                return wlTo_idx * (wlTo_idx - 1) / 2 + wlFrom_idx;
+            } else {
+                return -1;
+            }
+        }
 };

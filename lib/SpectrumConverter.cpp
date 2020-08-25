@@ -5,6 +5,7 @@
 #include <cstring>
 #include <cassert>
 #include <cmath>
+#include <functional>
 
 
 SpectrumConverter::SpectrumConverter(SPECTRUM_TYPE type)
@@ -33,6 +34,28 @@ SpectrumConverter::SpectrumConverter(
     , _xyzCmfs(xyzCmfs)
     , _xyzToRgb(xyzToRgb)
 {
+}
+
+
+size_t SpectrumConverter::cmfWavelengthIndex(float wavelength_nm) 
+const { 
+    assert(wavelength_nm >= firstWavelength());
+    assert(wavelength_nm <= lastWavelength());
+
+    float idx_f = float(wavelength_nm - _cmfFirstWavelength_nm);
+
+    assert(idx_f >= 0);
+    assert(idx_f < _xyzCmfs[0].size());
+
+    return static_cast<size_t>(std::round(idx_f));
+}
+
+
+size_t SpectrumConverter::cmfWavelengthValue(size_t index) 
+const { 
+    // assert(index < _xyzCmfs[0].size());
+    if (index >= _xyzCmfs[0].size()) return 0;
+    return _cmfFirstWavelength_nm + index;
 }
 
 
@@ -71,29 +94,8 @@ void SpectrumConverter::spectrumToRGB(
 }
 
 
-size_t SpectrumConverter::cmfWavelengthIndex(float wavelength_nm) 
-const { 
-    assert(wavelength_nm >= firstWavelength());
-    assert(wavelength_nm <= lastWavelength());
-
-    float idx_f = float(wavelength_nm - _cmfFirstWavelength_nm);
-
-    assert(idx_f >= 0);
-    assert(idx_f < _xyzCmfs[0].size());
-
-    return static_cast<size_t>(std::round(idx_f));
-}
-
-
-size_t SpectrumConverter::cmfWavelengthValue(size_t index) 
-const { 
-    // assert(index < _xyzCmfs[0].size());
-    if (index >= _xyzCmfs[0].size()) return 0;
-    return _cmfFirstWavelength_nm + index;
-}
-
-void SpectrumConverter::bispectralToXYZ(
-    std::vector<float>& wavelengths_nm,
+void SpectrumConverter::spectrumToXYZ(
+    const std::vector<float>& wavelengths_nm,
     const float* diagonal,
     const float* reradiation,
     std::array<float, 3>& XYZ
@@ -116,62 +118,118 @@ void SpectrumConverter::bispectralToXYZ(
     if (end_wavelength < start_wavelength) {
         return ;
     }
-    /* todo
+    
     assert(start_wavelength <= end_wavelength);
 
     float normalisation_factor(0);
 
-    for (size_t idx_value = 0; idx_value < wavelengths_nm.size() - 1; idx_value++) {
-        float wl_a = wavelengths_nm[idx_value];
-        float wl_b = wavelengths_nm[idx_value + 1];
+    std::function<float(size_t, size_t)> value = [diagonal, reradiation] (size_t wi, size_t wo) {
+        if (wi == wo) {
+            return diagonal[wi];
+        }
+
+        return reradiation[Util::idxFromWavelengthIdx(wi, wo)];
+    };
+
+    for (size_t wl_idx_i = 0; wl_idx_i < wavelengths_nm.size() - 1; wl_idx_i++) {
+        float wl_i_a = wavelengths_nm[wl_idx_i];
+        float wl_i_b = wavelengths_nm[wl_idx_i + 1];
 
         // We have not reached yet the starting point
-        if (start_wavelength > wl_b) {
+        if (start_wavelength > wl_i_b) {
             continue;
         }
 
         // We have finished the integration
-        if (end_wavelength < wl_a) {
+        if (end_wavelength < wl_i_a) {
             break;
         }
 
-        if (start_wavelength > wl_a) {
-            wl_a = start_wavelength;
+        if (start_wavelength > wl_i_a) {
+            wl_i_a = start_wavelength;
         }
 
-        if (end_wavelength < wl_b) {
-            wl_b = end_wavelength;
+        if (end_wavelength < wl_i_b) {
+            wl_i_b = end_wavelength;
         }
 
-        const size_t idx_curve_start = cmfWavelengthIndex(wl_a);
-        size_t       idx_curve_end   = cmfWavelengthIndex(wl_b);
+        const size_t idx_illu_start = wl_i_a - _illuminantFirstWavelenght_nm;
+        size_t       idx_illu_end   = wl_i_b - _illuminantFirstWavelenght_nm;
 
         // On last intervall we need to include the last wavelength of the spectrum
-        if (idx_value == wavelengths_nm.size() - 2) {
-            idx_curve_end = idx_curve_end + 1;
+        if (wl_idx_i == wavelengths_nm.size() - 2) {
+            idx_illu_end = idx_illu_end + 1;
         }
 
-        for (size_t idx_curve = idx_curve_start; idx_curve < idx_curve_end; idx_curve++) {
-            const float curr_wl = cmfWavelengthValue(idx_curve);
 
-            const size_t idx_illu_a = curr_wl - _illuminantFirstWavelenght_nm;
-            assert(curr_wl >= _illuminantFirstWavelenght_nm);
-            assert(idx_illu_a < _illuminantSPD.size());
+        for (size_t wl_idx_o = wl_idx_i; wl_idx_o < wavelengths_nm.size() - 1; wl_idx_o++) {
+            float wl_o_a = wavelengths_nm[wl_idx_o];
+            float wl_o_b = wavelengths_nm[wl_idx_o + 1];
 
-            const float illu_value = _illuminantSPD[idx_illu_a];
+            // We have not reached yet the starting point
+            if (start_wavelength > wl_o_b) {
+                continue;
+            }
 
-            normalisation_factor += illu_value * _xyzCmfs[1][idx_curve]; // Y
+            // We have finished the integration
+            if (end_wavelength < wl_o_a) {
+                break;
+            }
 
-            const float curr_value = 
-                illu_value * Util::interp(
-                                curr_wl,
-                                wavelengths_nm[idx_value],
-                                wavelengths_nm[idx_value + 1],
-                                spectrum[idx_value],
-                                spectrum[idx_value + 1]);
+            if (start_wavelength > wl_o_a) {
+                wl_o_a = start_wavelength;
+            }
 
-            for (size_t c = 0; c < 3; c++) {
-                XYZ[c] += curr_value * _xyzCmfs[c][idx_curve];
+            if (end_wavelength < wl_o_b) {
+                wl_o_b = end_wavelength;
+            }
+
+            const size_t idx_cmf_start = cmfWavelengthIndex(wl_o_a);
+            size_t       idx_cmf_end   = cmfWavelengthIndex(wl_o_b);
+
+            // On last intervall we need to include the last wavelength of the spectrum
+            if (wl_idx_o == wavelengths_nm.size() - 2) {
+                idx_cmf_end = idx_cmf_end + 1;
+            }
+
+            for (size_t idx_illu = idx_illu_start; idx_illu < idx_illu_end; idx_illu++) {
+                const float curr_wl_i = idx_illu + _illuminantFirstWavelenght_nm;
+                const float illu_value = _illuminantSPD[curr_wl_i];
+
+                assert(idx_illu < _illuminantSPD.size());
+
+                const float interp_illu = Util::alpha(
+                    wavelengths_nm[wl_idx_i],
+                    wavelengths_nm[wl_idx_i + 1],
+                    curr_wl_i);
+
+                for (size_t idx_cmf = idx_cmf_start; idx_cmf < idx_cmf_end; idx_cmf++) {
+                    const float curr_wl_o = cmfWavelengthValue(idx_cmf);
+
+                    const float interp_rerad = Util::alpha(
+                        wavelengths_nm[wl_idx_o],
+                        wavelengths_nm[wl_idx_o + 1],
+                        curr_wl_o);
+                    
+                    if (wl_idx_i == wl_idx_o) {
+                        normalisation_factor += illu_value * _xyzCmfs[1][idx_cmf]; // Y
+                    }
+
+                    // interpolation
+                    const float bispect =
+                    (1 - interp_rerad) * (
+                        (1 - interp_illu) * value(wl_idx_i    , wl_idx_o) +
+                        (    interp_illu) * value(wl_idx_i + 1, wl_idx_o)) +
+                    (    interp_rerad) * (
+                        (1 - interp_illu) * value(wl_idx_i    , wl_idx_o + 1) +
+                        (    interp_illu) * value(wl_idx_i + 1, wl_idx_o + 1));
+                    
+                    const float curr_value = illu_value * bispect;
+
+                    for (size_t c = 0; c < 3; c++) {
+                        XYZ[c] += curr_value * _xyzCmfs[c][idx_cmf];
+                    }
+                }
             }
         }
     }
@@ -179,7 +237,29 @@ void SpectrumConverter::bispectralToXYZ(
     for (size_t c = 0; c < 3; c++) {
         XYZ[c] /= normalisation_factor;
     }
-    */
+}
+
+
+void SpectrumConverter::spectrumToRGB(
+    const std::vector<float>& wavelengths_nm,
+    const float* diagonal,
+    const float* reradiation,
+    std::array<float, 3>& RGB
+) const {
+    std::array<float, 3> XYZ;
+    spectrumToXYZ(wavelengths_nm, diagonal, reradiation, XYZ);
+
+    memset(&RGB[0], 0, 3*sizeof(float));
+
+    // Convert to RGB using the provided matrix
+    for (size_t channel = 0; channel < 3; channel++) {
+        for (size_t col = 0; col < 3; col++) {
+            RGB[channel] += XYZ[col] * _xyzToRgb[3 * channel + col];
+        }
+
+        // Ensure RGB values are > 0
+        RGB[channel] = std::max(RGB[channel], 0.F);        
+    }
 }
 
 

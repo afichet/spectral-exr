@@ -18,6 +18,12 @@ class SpectrumConverter {
             const std::array<float, 9> xyzToRgb
         );
 
+        float firstWavelength() const { return _cmfFirstWavelength_nm; }
+        float lastWavelength() const { return _cmfFirstWavelength_nm + _xyzCmfs[0].size() - 1; }
+
+        size_t cmfWavelengthIndex(float wavelength_nm) const;
+        size_t cmfWavelengthValue(size_t index) const;
+
         void spectrumToXYZ(
             const std::vector<float>& wavelengths_nm,
             const float* spectrum,
@@ -30,17 +36,19 @@ class SpectrumConverter {
             std::array<float, 3>& RGB
         ) const;
 
-        float firstWavelength() const { return _cmfFirstWavelength_nm; }
-        float lastWavelength() const { return _cmfFirstWavelength_nm + _xyzCmfs[0].size() - 1; }
-
-        size_t cmfWavelengthIndex(float wavelength_nm) const;
-        size_t cmfWavelengthValue(size_t index) const;
-
-        void bispectralToXYZ(
-            std::vector<float>& wavelengths_nm,
+        // Bi-spectral
+        void spectrumToXYZ(
+            const std::vector<float>& wavelengths_nm,
             const float* diagonal,
             const float* reradiation,
             std::array<float, 3>& XYZ
+        ) const;
+
+        void spectrumToRGB(
+            const std::vector<float>& wavelengths_nm,
+            const float* diagonal,
+            const float* reradiation,
+            std::array<float, 3>& RGB
         ) const;
 
     protected:

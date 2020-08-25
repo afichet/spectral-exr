@@ -14,15 +14,16 @@ class BiSpectralImage: protected SpectralImage {
         //virtual void save(const std::string& filename) const = 0;
 
         //virtual void exportChannels(const std::string& path) const;
+        virtual void getRGBImage(std::vector<float>& rgbImage) const;
 
         size_t reradiationSize() const {
             return nSpectralBands() * (nSpectralBands() - 1) / 2;
         }
 
-        size_t idxFromWavelengthIdx(
+        static size_t idxFromWavelengthIdx(
             size_t wlFrom_idx,
             size_t wlTo_idx
-        ) const {
+        ) {
             if (wlFrom_idx < wlTo_idx) {
                 return wlTo_idx * (wlTo_idx - 1) / 2 + wlFrom_idx;
             } else {
