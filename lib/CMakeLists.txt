@@ -13,7 +13,9 @@ find_package(OpenEXR REQUIRED)
 
 if (OpenEXR_FOUND)
     set(PUBLIC_HEADERS
+        include/SpecturmType.h
         include/SpectrumAttribute.h
+        
         include/SpectralImage.h
         include/EXRSpectralImage.h
 
