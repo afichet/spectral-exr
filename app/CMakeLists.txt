@@ -8,3 +8,5 @@ add_subdirectory(spectrum-to-exr)
 
 add_subdirectory(split-channels)
 add_subdirectory(merge-exr)
+add_subdirectory(export-spectrum)
+add_subdirectory(export-reradiation)

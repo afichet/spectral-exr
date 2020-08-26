@@ -44,9 +44,14 @@ int main(/*int argc, char *argv[]*/) {
                                 : fluorescent_yellow;
 
             for (size_t wl_i_idx = 0; wl_i_idx < wl_size; wl_i_idx++) {
+                const size_t db_i = wl_i_idx + wl_i_idx_start;
+                assert(db_i < wi_size);
+
                 for (size_t wl_o_idx = wl_i_idx; wl_o_idx < wl_size; wl_o_idx++) {
-                    fluoImage(x, y, wl_i_idx, wl_o_idx) =
-                        std::max(0.F, ptr[wl_o_idx + wl_o_idx_start][wl_i_idx + wl_i_idx_start]);
+                    const size_t db_o = wl_o_idx + wl_o_idx_start;
+                    assert(db_o < wo_size);
+
+                    fluoImage(x, y, wl_i_idx, wl_o_idx) = std::max(0.F, ptr[db_o][db_i]);
                 }
             }
         }

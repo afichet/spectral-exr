@@ -26,6 +26,8 @@ class Util {
             const std::string& prefix,
             const std::string& units) 
         {
+            if (prefix == "n" && units == "m") return value;
+            
             float wavelength_nm = value;
 
             const std::map<std::string, float> unit_prefix = {

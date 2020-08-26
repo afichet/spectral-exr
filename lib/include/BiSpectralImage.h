@@ -3,7 +3,7 @@
 #include "SpectralImage.h"
 
 
-class BiSpectralImage: protected SpectralImage {
+class BiSpectralImage: public SpectralImage {
     public:
         BiSpectralImage(
             size_t width = 0, size_t height = 0,
@@ -11,9 +11,7 @@ class BiSpectralImage: protected SpectralImage {
             bool containsPolarisationData = false
         );
 
-        //virtual void save(const std::string& filename) const = 0;
-
-        //virtual void exportChannels(const std::string& path) const;
+        virtual void exportChannels(const std::string& path) const;
         virtual void getRGBImage(std::vector<float>& rgbImage) const;
 
         size_t reradiationSize() const {
@@ -39,10 +37,14 @@ class BiSpectralImage: protected SpectralImage {
             float k = std::floor((std::sqrt(1.F + 8.F * float(rerad_idx)) - 1.F) / 2.F);
             float j = rerad_idx - k * (k + 1) / 2.F;
 
-            wlFrom_idx = j;
-            wlTo_idx = k + 1;
+            wlFrom_idx = k + 1;
+            wlTo_idx = j;
         }
 
+        virtual float getPixelValue(
+            size_t x, size_t y, 
+            size_t wavelengthFrom_idx, size_t wavelengthTo_idx,
+            size_t polarsiationComponent = 0) const;
 
         virtual float& operator()(
             size_t x, size_t y, 

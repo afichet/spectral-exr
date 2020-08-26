@@ -142,11 +142,11 @@ EXRBiSpectralImage::EXRBiSpectralImage(
                 }
                 wlReradCount++;
             } else {
-                if (wlReradCount != nSpectralBands() - wlIdx - 1) {
-                    std::cerr << "We need full spectral reradiation specification" << std::endl;
-                }
-                wlIdx++;
-                wlReradCount = 0;
+                // if (wlReradCount != nSpectralBands() - wlIdx - 1) {
+                //     std::cerr << "We need full spectral reradiation specification" << std::endl;
+                // }
+                // wlIdx++;
+                // wlReradCount = 0;
             }
         }
     }
@@ -407,20 +407,20 @@ std::string EXRBiSpectralImage::getReradiationChannelName(
 
     // "Pedantic" check
 #ifndef NDEBUG
-    int stokesComponentChecked;
+    int muellerComponent;
     float wavelength_nmChecked;
     float reradiation_wavelength_nmChecked;
 
     if (channelType(
         channelName, 
-        stokesComponentChecked, 
+        muellerComponent, 
         wavelength_nmChecked, 
         reradiation_wavelength_nmChecked) != RERADIATION) {
         throw INTERNAL_ERROR;
     }
 
-    if (stokesComponentChecked != 0 
-     || wavelength_nmChecked != wavelength_nmChecked
+    if (muellerComponent != 0 
+     || wavelength_nmChecked != wavelength_nm
      || reradiation_wavelength_nmChecked != reradiation_wavelength_nm) {
         throw INTERNAL_ERROR;
     }

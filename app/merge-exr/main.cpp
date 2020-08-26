@@ -11,7 +11,8 @@
 #include <OpenEXR/ImfRgbaFile.h>
 #include <OpenEXR/ImfArray.h>
 
-bool checkExtension(const std::string& path) {
+bool checkExtension(const std::string& path) 
+{
     if (path.length() < 4) { return false; }
 
     const char* c[2] = {".EXR", ".exr"};
@@ -51,8 +52,8 @@ void load_csv(
 }
 
 
-int main(int argc, char* argv[]) {
-
+int main(int argc, char* argv[]) 
+{
     if (argc < 5) {
         std::cout << "Usage:" << std::endl
                   << "------" << std::endl
