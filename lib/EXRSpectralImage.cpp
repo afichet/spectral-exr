@@ -253,7 +253,7 @@ const {
 }
 
 
-SpectralImage::SpectrumType EXRSpectralImage::channelType(
+SpectrumType EXRSpectralImage::channelType(
     const std::string& channelName,
     int& polarisationComponent,
     float& wavelength_nm

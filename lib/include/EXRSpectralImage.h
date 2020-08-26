@@ -21,7 +21,7 @@ class EXRSpectralImage : public SpectralImage {
 
         void save(const std::string& filename) const;
 
-        SpectralImage::SpectrumType channelType(
+        SpectrumType channelType(
             const std::string& channelName, 
             int& polarisationComponent, 
             float& wavelengths_nm

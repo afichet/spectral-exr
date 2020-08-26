@@ -68,7 +68,7 @@ const {
 void SpectralImage::getRGBImage(std::vector<float>& rgbImage) 
 const {
     rgbImage.resize(3 * width() * height());
-    SpectrumConverter sc((_spectrumType == EMISSIVE) ? SpectrumConverter::EMISSIVE : SpectrumConverter::REFLECTIVE);
+    SpectrumConverter sc(type());
     
     std::array<float, 3> rgb;
 
@@ -193,7 +193,7 @@ const {
             case REFLECTIVE:
             return 16;
 
-            case UNDEFINED:
+            default:
             return 0;
         }
     }
@@ -205,7 +205,7 @@ const {
 bool SpectralImage::polarised()    const { return _containsPolarisationData; }
 bool SpectralImage::emissive()     const { return _spectrumType == EMISSIVE; }
 bool SpectralImage::reflective()   const { return _spectrumType == REFLECTIVE; }
-SpectralImage::SpectrumType SpectralImage::type() const { return _spectrumType; }
+SpectrumType SpectralImage::type() const { return _spectrumType; }
 
 
 void SpectralImage::componentsFromIndex(
@@ -228,7 +228,7 @@ void SpectralImage::componentsFromIndex(
         col = index / 4;
         break;
 
-        case UNDEFINED:
+        default:
         assert(0);
 
         row = 0;

@@ -22,7 +22,7 @@ BiSpectralImage::BiSpectralImage(
 void BiSpectralImage::getRGBImage(std::vector<float>& rgbImage) 
 const {
     rgbImage.resize(3 * width() * height());
-    SpectrumConverter sc(SpectrumConverter::REFLECTIVE);
+    SpectrumConverter sc(type());
     
     std::array<float, 3> rgb;
 

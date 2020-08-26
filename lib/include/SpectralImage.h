@@ -5,7 +5,7 @@
 #include <string>
 
 #include <SpectrumAttribute.h>
-
+#include <SpectrumType.h>
 
 class SpectralImage {
     public:
@@ -15,12 +15,6 @@ class SpectralImage {
             READ_ERROR,
             WRITE_ERROR,
             INCORRECT_FORMED_FILE
-        };
-
-        enum SpectrumType {
-            REFLECTIVE,
-            EMISSIVE, 
-            UNDEFINED
         };
 
         SpectralImage(

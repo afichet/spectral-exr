@@ -67,11 +67,11 @@ int main(int argc, char* argv[]) {
 
     switch (spectralImage.type())
     {
-    case SpectralImage::EMISSIVE:
+    case EMISSIVE:
         additionalInfo << "emissive" << std::endl;
         break;
 
-    case SpectralImage::REFLECTIVE:
+    case REFLECTIVE:
         additionalInfo << "reflective" << std::endl;
         break;
 

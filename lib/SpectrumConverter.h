@@ -3,14 +3,11 @@
 #include <array>
 #include <vector>
 
+#include <SpectrumType.h>
+
 class SpectrumConverter {
     public:
-        enum SPECTRUM_TYPE {
-            REFLECTIVE,
-            EMISSIVE
-        };
-
-        SpectrumConverter(SPECTRUM_TYPE type = EMISSIVE);
+        SpectrumConverter(SpectrumType type = EMISSIVE);
 
         SpectrumConverter(
             const float& cmfFirstWavelength_nm,

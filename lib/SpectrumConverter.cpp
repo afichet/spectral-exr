@@ -8,7 +8,7 @@
 #include <functional>
 
 
-SpectrumConverter::SpectrumConverter(SPECTRUM_TYPE type)
+SpectrumConverter::SpectrumConverter(SpectrumType type)
     : _emissiveSpectrum(type == EMISSIVE)
     , _cmfFirstWavelength_nm(CIE1931_2DEG_FIRST_WAVELENGTH_NM)
 {
