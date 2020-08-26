@@ -37,8 +37,8 @@ class BiSpectralImage: public SpectralImage {
             float k = std::floor((std::sqrt(1.F + 8.F * float(rerad_idx)) - 1.F) / 2.F);
             float j = rerad_idx - k * (k + 1) / 2.F;
 
-            wlFrom_idx = k + 1;
-            wlTo_idx = j;
+            wlFrom_idx = j;
+            wlTo_idx = k + 1;
         }
 
         virtual float getPixelValue(

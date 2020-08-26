@@ -132,22 +132,33 @@ EXRBiSpectralImage::EXRBiSpectralImage(
     // Check every single reradiation have all upper wavelength values
     // Note: this shall not be mandatory in the format but, we only support that for now
     if (reradiation_wavelengths_nm.size() > 0) {
-        float currWl = reradiation_wavelengths_nm[0].first.first;
-        size_t wlReradCount = 0;
-        size_t wlIdx = 0;
-        for (const auto& rr: reradiation_wavelengths_nm) {
-            if (rr.first.first == currWl) {
-                if (rr.first.first != wavelength_nm(wlIdx)) {
-                    std::cerr << "We need full spectral reradiation specification" << std::endl;
+        float currDiagWl = wavelength_nm(0);
+        size_t diagonalIdx = 0;
+        size_t reradIdx = 1;
+
+        for (size_t rr = 0; rr < reradiation_wavelengths_nm.size(); rr++) {
+            const auto& rerad = reradiation_wavelengths_nm[rr];
+
+            if (rerad.first.first > currDiagWl) {
+                if (diagonalIdx + reradIdx != nSpectralBands()) {
+                    std::cerr << "We need the full spectral reradiation specification" << std::endl;
                 }
-                wlReradCount++;
-            } else {
-                // if (wlReradCount != nSpectralBands() - wlIdx - 1) {
-                //     std::cerr << "We need full spectral reradiation specification" << std::endl;
-                // }
-                // wlIdx++;
-                // wlReradCount = 0;
+                diagonalIdx++;
+                reradIdx = 1;
+
+                currDiagWl = wavelength_nm(diagonalIdx);
+
             }
+
+            if (rerad.first.first != wavelength_nm(diagonalIdx)) {
+                std::cerr << "We need the full spectral reradiation specification" << std::endl;
+            }
+
+            if (rerad.first.second != wavelength_nm(diagonalIdx + reradIdx)) {
+                std::cerr << "We need the full spectral reradiation specification" << std::endl;
+            }
+
+            reradIdx++;
         }
     }
 
@@ -184,10 +195,11 @@ EXRBiSpectralImage::EXRBiSpectralImage(
     const size_t xStrideReradiation = sizeof(float) * reradiationSize();
     const size_t yStrideReradiation = xStrideReradiation * _width;
 
+#warning double check that
     for (size_t rr = 0; rr < reradiationSize(); rr++) {
             char* framebuffer = (char*)(&_reradiation[rr]);
             exrFrameBuffer.insert(
-                reradiation_wavelengths_nm[rr].second, 
+                reradiation_wavelengths_nm[reradiationSize() - rr - 1].second, 
                 Imf::Slice(compType, framebuffer, xStrideReradiation, yStrideReradiation));
     }
 
