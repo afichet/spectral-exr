@@ -15,7 +15,7 @@ This will compile an example program.
 # Sample programs
 You can find in `app` several sample programs using spectral OpenEXR.
 
-## Mabeth
+## Macbeth
 Macbeth executable (`macbeth`) generates a Macbeth colour chart using the spectral data from: http://www.babelcolor.com/colorchecker-2.htm. It will generate a file `Macbeth.exr` from the execution place.
 
 ```bash
@@ -23,14 +23,14 @@ Macbeth executable (`macbeth`) generates a Macbeth colour chart using the spectr
 ```
 
 ## Fluo EXR
-Fluo EXR executable (`fluo-exr`) generates a simple checkerboard made of two fluorescent patches: 3M fluorescent yellow Post-It (R) sticker and 3M fluorescent pink Post-It (R) sticker. Data courtesy of Labsphere Inc. It will generate a file `BiSpectral.exr`
+Fluo EXR executable (`fluo-exr`) generates a simple checker-board made of two fluorescent patches: 3M fluorescent yellow Post-It (R) sticker and 3M fluorescent pink Post-It (R) sticker. Data courtesy of Labsphere Inc. It will generate a file `BiSpectral.exr`
 
 ```bash
 ./bin/fluo-exr
 ```
 
 ## Export spectrum
-Export spectrum executable (`export-spectrum`) extracts from the given pixel location the stored spectrum in an ASCII file. Each columns correspond to a polarisation component if present in the image. $S_0$, $S_1$, $S_2$, $S_3$ for emissive images and $M_{00}$ ... $M_{33}$ for reflective images. First column is the wavelength in nanometers. Each column is separated by a space.
+Export spectrum executable (`export-spectrum`) extracts from the given pixel location the stored spectrum in an ASCII file. Each columns correspond to a polarisation component if present in the image. $S_0$, $S_1$, $S_2$, $S_3$ for emissive images and $M_{00}$ ... $M_{33}$ for reflective images. First column is the wavelength in manometers. Each column is separated by a space.
 
 It takes as arguments:
 - A spectral EXR
@@ -70,8 +70,8 @@ Merge EXR executable (`merge-exr`) creates an emissive spectral EXR from a folde
 
 It takes as arguments:
 - Folder path containing the images
-- Starting wavelength (in nanometers)
-- Increment of wavelength between images (in nanometers)
+- Starting wavelength (in manometers)
+- Increment of wavelength between images (in manometers)
 - Output file
 - Optional additional arguments:
   - Camera response in CSV format (comma separated)
@@ -127,7 +127,7 @@ For example:
 ```
 
 ## Split channels
-Split channel splits a spectral EXR is separate single monochromatic EXR files.
+Split channels executable (`split-channels`) splits a spectral EXR is separate single monochromatic EXR files.
 
 It takes as arguments:
 - A spectral EXR file
