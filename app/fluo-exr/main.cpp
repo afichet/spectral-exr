@@ -57,5 +57,5 @@ int main(/*int argc, char *argv[]*/) {
         }
     }
 
-    fluoImage.save("fluo.exr");
+    fluoImage.save("BiSpectral.exr");
 }

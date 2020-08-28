@@ -1,5 +1,5 @@
 # OpenEXR Spectral Image
-This is an example code for reading and writing OpenEXR spectral images.
+This is an example code for reading and writing OpenEXR spectral images. The main code is placed in `lib` folder.
 
 ## Compilation
 To compile this code, you need a C++11 compliant compiler, the OpenEXR library installed on your system and CMake.
@@ -12,8 +12,35 @@ make
 
 This will compile an example program.
 
-## Usage
+## Sample programs
+You can find in `app` several sample programs using spectral OpenEXR.
 
+# Mabeth
+Macbeth executable (`macbeth`) generates a Macbeth colour chart using the spectral data from: http://www.babelcolor.com/colorchecker-2.htm. It will generate a file `Macbeth.exr` from the execution place.
+
+```bash
+./bin/macbeth
+```
+
+# Fluo EXR
+Fluo EXR executable (`fluo-exr`) generates a simple checkerboard made of two fluorescent patches: 3M fluorescent yellow Post-It (R) sticker and 3M fluorescent pink Post-It (R) sticker. Data courtesy of Labsphere Inc. It will generate a file `BiSpectral.exr`
+
+```bash
+./bin/fluo-exr
+```
+
+# Export spectrum
+Export spectrum executable (`export-spectrum`) extract from the given pixel location the stored spectrum in an ASCII file. Each columns correspond to a polarisation component if present in the image. $S_0$, $S_1$, $S_2$, $S_3$ for emissive images and $M_{00}$ ... $M_{33}$ for reflective images.
+
+It takes as arguments:
+- A spectral EXR
+- The x coordinate of the pixel to extract
+- The y coordinate of the pixel to extract
+- The output file
+
+```bash
+./bin/export-spectrum Macbeth.exr 15 15 Macbeth.txt
+```
 
 ## License
 Copyright (c) 2020, <Authors>
