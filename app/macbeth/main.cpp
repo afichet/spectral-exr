@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
                 )
             )
             {
-                memcpy(&spectralImage(x, y, 0), &macbeth_patches[idx][0], spectralImage.nSpectralBands() * sizeof(float));
+                memcpy(&spectralImage(x, y, 0, 0, 0), &macbeth_patches[idx][0], spectralImage.nSpectralBands() * sizeof(float));
             }
         }
     }

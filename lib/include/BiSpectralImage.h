@@ -7,8 +7,7 @@ class BiSpectralImage: public SpectralImage {
     public:
         BiSpectralImage(
             size_t width = 0, size_t height = 0,
-            const std::vector<float>& wavelengths_nm = std::vector<float>(),
-            bool containsPolarisationData = false
+            const std::vector<float>& wavelengths_nm = std::vector<float>()
         );
 
         virtual void exportChannels(const std::string& path) const;
@@ -44,17 +43,20 @@ class BiSpectralImage: public SpectralImage {
         virtual float getPixelValue(
             size_t x, size_t y, 
             size_t wavelengthFrom_idx, size_t wavelengthTo_idx,
-            size_t polarsiationComponent = 0) const;
+            size_t muellerRow,
+            size_t muellerColumn) const;
 
         virtual float& operator()(
             size_t x, size_t y, 
             size_t wavelengthFrom_idx, size_t wavelengthTo_idx,
-            size_t polarsiationComponent = 0);
+            size_t muellerRow,
+            size_t muellerColumn);
 
         virtual const float& operator()(
             size_t x, size_t y, 
             size_t wavelengthFrom_idx, size_t wavelengthTo_idx,
-            size_t polarsiationComponent = 0) const;
+            size_t muellerRow,
+            size_t muellerColumn) const;
 
 
     protected:

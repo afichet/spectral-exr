@@ -13,8 +13,7 @@ class EXRBiSpectralImage: public BiSpectralImage {
     public:
         EXRBiSpectralImage(
             size_t width = 0, size_t height = 0,
-            const std::vector<float>& wavelengths_nm = std::vector<float>(),
-            bool containsPolarisationData = false
+            const std::vector<float>& wavelengths_nm = std::vector<float>()
         );
 
         EXRBiSpectralImage(

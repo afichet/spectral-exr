@@ -11,15 +11,11 @@
 
 BiSpectralImage::BiSpectralImage(
     size_t width, size_t height,
-    const std::vector<float>& wavelengths_nm,
-    bool containsPolarisationData
+    const std::vector<float>& wavelengths_nm
 )
-    : SpectralImage(width, height, wavelengths_nm, REFLECTIVE, containsPolarisationData)
+    // TODO: spectrum type shall be set explicitly
+    : SpectralImage(width, height, wavelengths_nm, REFLECTIVE)
 {
-    for (size_t s = 0; s < nPolarsiationComponents(); s++) {
-        _pixelBuffers[s].resize(nSpectralBands() * _width * _height);
-    }
-
     _reradiation.resize(reradiationSize() * _width * _height);
 }
 
@@ -62,14 +58,14 @@ const {
 void BiSpectralImage::getRGBImage(std::vector<float>& rgbImage) 
 const {
     rgbImage.resize(3 * width() * height());
-    SpectrumConverter sc(type());
+    SpectrumConverter sc(emissive()); // TODO
     
     std::array<float, 3> rgb;
 
     for (size_t i = 0; i < width() * height(); i++) {
         sc.spectrumToRGB(
             _wavelengths_nm, 
-            &_pixelBuffers[0][nSpectralBands() * i],
+            &_reflectivePixelBuffers[0][nSpectralBands() * i],
             &_reradiation[reradiationSize() * i],
             rgb
             );
@@ -81,25 +77,28 @@ const {
 float BiSpectralImage::getPixelValue(
     size_t x, size_t y, 
     size_t wavelengthFrom_idx, size_t wavelengthTo_idx,
-    size_t polarsiationComponent) 
+    size_t muellerRow,
+    size_t muellerColumn) 
 const {
     if (wavelengthFrom_idx > wavelengthTo_idx) {
         return 0.F;
     }
 
-    return (*this)(x, y, wavelengthFrom_idx, wavelengthTo_idx, polarsiationComponent);
+    return (*this)(x, y, wavelengthFrom_idx, wavelengthTo_idx, muellerRow, muellerColumn);
 }
 
 float& BiSpectralImage::operator()(
     size_t x, size_t y, 
     size_t wavelengthFrom_idx, size_t wavelengthTo_idx,
-    size_t polarsiationComponent)
+    size_t muellerRow,
+    size_t muellerColumn)
 {
     if (wavelengthFrom_idx == wavelengthTo_idx) {
-        return SpectralImage::operator()(x, y, wavelengthFrom_idx, polarsiationComponent);
+        return SpectralImage::operator()(x, y, wavelengthFrom_idx, muellerRow, muellerColumn);
     }
         
-    assert(polarsiationComponent == 0);
+    assert(muellerRow == 0);
+    assert(muellerColumn == 0);
     
     size_t reradIdx = idxFromWavelengthIdx(wavelengthFrom_idx, wavelengthTo_idx);
 
@@ -110,14 +109,16 @@ float& BiSpectralImage::operator()(
 const float& BiSpectralImage::operator()(
     size_t x, size_t y, 
     size_t wavelengthFrom_idx, size_t wavelengthTo_idx,
-    size_t polarsiationComponent) 
+    size_t muellerRow,
+    size_t muellerColumn) 
 const {
     if (wavelengthFrom_idx == wavelengthTo_idx) {
-        return SpectralImage::operator()(x, y, wavelengthFrom_idx, polarsiationComponent);
+        return SpectralImage::operator()(x, y, wavelengthFrom_idx, muellerRow, muellerColumn);
     }
 
-    assert(polarsiationComponent == 0);
-    
+    assert(muellerRow == 0);
+    assert(muellerColumn == 0);
+
     size_t reradIdx = idxFromWavelengthIdx(wavelengthFrom_idx, wavelengthTo_idx);
 
     return _reradiation[reradiationSize() * (y * width() + x) + reradIdx];

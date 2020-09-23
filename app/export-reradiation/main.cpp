@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 
     for (size_t wl_i_idx = 0; wl_i_idx < image.nSpectralBands(); wl_i_idx++) {
         for (size_t wl_o_idx = 0; wl_o_idx < image.nSpectralBands(); wl_o_idx++) {
-            tabularOut << image.getPixelValue(x, y, wl_i_idx, wl_o_idx) << " ";
+            tabularOut << image.getPixelValue(x, y, wl_i_idx, wl_o_idx, 0, 0) << " ";
         }
         
         tabularOut << "\n";

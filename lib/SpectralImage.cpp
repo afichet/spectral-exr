@@ -2,6 +2,7 @@
 
 #include <sstream>
 #include <cassert>
+#include <functional>
 
 #include <OpenEXR/ImfOutputFile.h>
 #include <OpenEXR/ImfChannelList.h>
@@ -12,17 +13,21 @@
 SpectralImage::SpectralImage(
     size_t width, size_t height,
     const std::vector<float>& wavelengths_nm,
-    SpectrumType type,
-    bool containsPolarisationData
+    SpectrumType type
 )
     : _width(width)
     , _height(height)
     , _wavelengths_nm(wavelengths_nm)
-    , _containsPolarisationData(containsPolarisationData)
     , _spectrumType(type)
 {
-    for (size_t s = 0; s < nPolarsiationComponents(); s++) {
-        _pixelBuffers[s].resize(nSpectralBands() * _width * _height);
+    const size_t buffSize = nSpectralBands() * _width * _height;
+
+    for (size_t s = 0; s < nStokesComponents(); s++) {
+        _emissivePixelBuffers[s].resize(buffSize);
+    }
+
+    for (size_t m = 0; m < nMuellerComponents(); m++) {
+        _reflectivePixelBuffers[m].resize(buffSize);
     }
 
     _channelSensitivities.resize(nSpectralBands());
@@ -31,35 +36,53 @@ SpectralImage::SpectralImage(
 
 void SpectralImage::exportChannels(const std::string& path) 
 const {
-    const size_t xStride = sizeof(float) * nSpectralBands();
-    const size_t yStride = xStride * width();
+    // Utility function to create an EXR from a monochromatic buffer
+    std::function<void(const std::string&, const float*)> writeEXR = 
+    [this](const std::string& filename, const float* buffer) {
+        const size_t xStride = sizeof(float) * nSpectralBands();
+        const size_t yStride = xStride * width();
 
-    for (size_t s = 0; s < nPolarsiationComponents(); s++) {
+        Imf::Header exrHeader(width(), height());
+        Imf::ChannelList & exrChannels = exrHeader.channels();
+        Imf::FrameBuffer exrFrameBuffer;
+
+        exrChannels.insert("Y", Imf::Channel(Imf::FLOAT));
+        exrFrameBuffer.insert("Y", Imf::Slice(Imf::FLOAT, (char*)(buffer), xStride, yStride));
+        
+        Imf::OutputFile exrOut(filename.c_str(), exrHeader);
+        exrOut.setFrameBuffer(exrFrameBuffer);
+        exrOut.writePixels(height());
+    };
+
+    // Export the emissive part
+    for (size_t s = 0; s < nStokesComponents(); s++) {
         std::stringstream filePrefix;
 
-        if (emissive()) {
-            filePrefix << "S" << s;
-        } else {
-            size_t row, col;
-            componentsFromIndex(s, row, col);
-            filePrefix << "M" << row << col;
-        }
+        filePrefix << "S" << s;
 
         for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
             const float& wavelength = _wavelengths_nm[wl_idx];
             std::stringstream filepath;
             filepath << path << "/" << filePrefix.str() << " - " << wavelength << "nm.exr";
 
-            Imf::Header exrHeader(width(), height());
-            Imf::ChannelList & exrChannels = exrHeader.channels();
-            Imf::FrameBuffer exrFrameBuffer;
+            writeEXR(filepath.str(), &_emissivePixelBuffers[s][wl_idx]);
+        }
+    }
 
-            exrChannels.insert("Y", Imf::Channel(Imf::FLOAT));
-            exrFrameBuffer.insert("Y", Imf::Slice(Imf::FLOAT, (char*)(&_pixelBuffers[s][wl_idx]), xStride, yStride));
-            
-            Imf::OutputFile exrOut(filepath.str().c_str(), exrHeader);
-            exrOut.setFrameBuffer(exrFrameBuffer);
-            exrOut.writePixels(height());
+    // Export the reflective part
+    for (size_t m = 0; m < nMuellerComponents(); m++) {
+        std::stringstream filePrefix;
+        size_t row, col;
+
+        componentsFromIndex(m, row, col);
+        filePrefix << "M" << row << col;
+
+        for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
+            const float& wavelength = _wavelengths_nm[wl_idx];
+            std::stringstream filepath;
+            filepath << path << "/" << filePrefix.str() << " - " << wavelength << "nm.exr";
+
+            writeEXR(filepath.str(), &_reflectivePixelBuffers[m][wl_idx]);
         }
     }
 }
@@ -68,18 +91,41 @@ const {
 void SpectralImage::getRGBImage(std::vector<float>& rgbImage) 
 const {
     rgbImage.resize(3 * width() * height());
-    SpectrumConverter sc(type());
+    SpectrumConverter sc(emissive());
     
     std::array<float, 3> rgb;
 
-    for (size_t i = 0; i < width() * height(); i++) {
-        sc.spectrumToRGB(
-            _wavelengths_nm, 
-            &_pixelBuffers[0][nSpectralBands() * i],
-            rgb
-            );
+    if (emissive() && reflective()) {
+        for (size_t i = 0; i < width() * height(); i++) {
+            sc.spectraToRGB(
+                _wavelengths_nm,
+                &_reflectivePixelBuffers[0][nSpectralBands() * i],
+                &_emissivePixelBuffers[0][nSpectralBands() * i],
+                rgb
+                );
 
-        memcpy(&rgbImage[3 * i], &rgb[0], 3 * sizeof(float));
+            memcpy(&rgbImage[3 * i], &rgb[0], 3 * sizeof(float));
+        }
+    } else if (emissive()) {
+        for (size_t i = 0; i < width() * height(); i++) {
+            sc.spectrumToRGB(
+                _wavelengths_nm,
+                &_emissivePixelBuffers[0][nSpectralBands() * i],
+                rgb
+                );
+
+            memcpy(&rgbImage[3 * i], &rgb[0], 3 * sizeof(float));
+        }
+    } else {
+        for (size_t i = 0; i < width() * height(); i++) {
+            sc.spectrumToRGB(
+                _wavelengths_nm,
+                &_reflectivePixelBuffers[0][nSpectralBands() * i],
+                rgb
+                );
+
+            memcpy(&rgbImage[3 * i], &rgb[0], 3 * sizeof(float));
+        }
     }
 }
 
@@ -121,7 +167,7 @@ void SpectralImage::setChannelSensitivity(
     const std::vector<float>& wavelengths_nm,
     const std::vector<float>& values
 ) {
-    assert(wl_idx < _pixelBuffers[0].size());
+    assert(wl_idx < _emissivePixelBuffers[0].size());
     assert(wavelengths_nm.size() == values.size());
     
     _channelSensitivities[wl_idx] = SpectrumAttribute(wavelengths_nm, values);
@@ -141,32 +187,97 @@ const {
     return _channelSensitivities[wl_idx]; 
 }
 
+// Access the emissive part
 
 float& SpectralImage::operator()(
     size_t x, size_t y,
     size_t wavelength_idx, 
-    size_t polarisationComponent
+    size_t stokesComponent
 ) {
     assert(x < width());
     assert(y < height());
     assert(wavelength_idx < nSpectralBands());
-    assert(polarisationComponent < 4);
+    assert(stokesComponent < 4);
+    assert(emissive());
 
-    return _pixelBuffers[polarisationComponent][nSpectralBands() * (y * width() + x) + wavelength_idx];
+    return _emissivePixelBuffers[stokesComponent][nSpectralBands() * (y * width() + x) + wavelength_idx];
 }
 
 
 const float& SpectralImage::operator()(
     size_t x, size_t y,
     size_t wavelength_idx, 
-    size_t polarisationComponent
+    size_t stokesComponent
 ) const {
     assert(x < width());
     assert(y < height());
     assert(wavelength_idx < nSpectralBands());
-    assert(polarisationComponent < 4);
+    assert(stokesComponent < 4);
+    assert(emissive());
 
-    return _pixelBuffers[polarisationComponent][nSpectralBands() * (y * width() + x) + wavelength_idx];
+    return _emissivePixelBuffers[stokesComponent][nSpectralBands() * (y * width() + x) + wavelength_idx];
+}
+
+// Access the reflective part
+
+float& SpectralImage::operator()(
+    size_t x, size_t y,
+    size_t wavelength_idx, 
+    size_t muellerRow,
+    size_t muellerColumn
+) {
+    assert(x < width());
+    assert(y < height());
+    assert(wavelength_idx < nSpectralBands());
+    assert(muellerRow < 4);
+    assert(muellerColumn < 4);
+    assert(reflective());
+
+    return _reflectivePixelBuffers[indexFromComponents(muellerRow, muellerColumn)][nSpectralBands() * (y * width() + x) + wavelength_idx];
+}
+
+
+const float& SpectralImage::operator()(
+    size_t x, size_t y,
+    size_t wavelength_idx, 
+    size_t muellerRow,
+    size_t muellerColumn
+) const {
+    assert(x < width());
+    assert(y < height());
+    assert(wavelength_idx < nSpectralBands());
+    assert(muellerRow < 4);
+    assert(muellerColumn < 4);
+    assert(reflective());
+
+    return _reflectivePixelBuffers[indexFromComponents(muellerRow, muellerColumn)][nSpectralBands() * (y * width() + x) + wavelength_idx];
+}
+
+
+float SpectralImage::getEmissiveValue(
+    size_t x, size_t y, 
+    size_t wavelength_idx, 
+    size_t stokesComponent
+) const {
+    if (emissive()) {
+        return (*this)(x, y, wavelength_idx, stokesComponent);
+    }
+
+    return 0.F;
+}
+
+
+float SpectralImage::getReflectiveValue(
+    size_t x, size_t y, 
+    size_t wavelength_idx, 
+    size_t muellerRow, 
+    size_t muellerColumn
+) const {
+    if (reflective()) {
+        return (*this)(x, y, wavelength_idx, muellerRow, muellerColumn);
+    }
+
+    return 0.F;
 }
 
 
@@ -183,28 +294,35 @@ size_t SpectralImage::height() const { return _height; }
 size_t SpectralImage::nSpectralBands() const { return _wavelengths_nm.size(); }
 
 
-size_t SpectralImage::nPolarsiationComponents() 
-const { 
-    if (polarised()) {
-        switch(type()) {
-            case EMISSIVE:
+size_t SpectralImage::nStokesComponents()  const {
+    if (emissive()) {
+        if (polarised()) {
             return 4;
-
-            case REFLECTIVE:
-            return 16;
-
-            default:
-            return 0;
+        } else {
+            return 1;
         }
     }
 
-    return 1;
+    return 0;
 }
 
 
-bool SpectralImage::polarised()    const { return _containsPolarisationData; }
-bool SpectralImage::emissive()     const { return _spectrumType == EMISSIVE; }
-bool SpectralImage::reflective()   const { return _spectrumType == REFLECTIVE; }
+size_t SpectralImage::nMuellerComponents() const {
+    if (reflective()) {
+        if (polarised()) {
+            return 16;
+        } else {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+
+bool SpectralImage::polarised()    const { return (_spectrumType & POLARISED)  != 0; }
+bool SpectralImage::emissive()     const { return (_spectrumType & EMISSIVE)   != 0; }
+bool SpectralImage::reflective()   const { return (_spectrumType & REFLECTIVE) != 0; }
 SpectrumType SpectralImage::type() const { return _spectrumType; }
 
 
@@ -212,54 +330,18 @@ void SpectralImage::componentsFromIndex(
     size_t index,
     size_t& row,
     size_t& col
-) const {
-    switch(type()) {
-        case EMISSIVE:
-        assert(index < 4);
-
-        row = index;
-        col = 0;
-        break;
-
-        case REFLECTIVE:
-        assert(index < 16);
-
-        row = index % 4;
-        col = index / 4;
-        break;
-
-        default:
-        assert(0);
-
-        row = 0;
-        col = 0;
-        break;
-    }
+) {
+    row = index % 4;
+    col = index / 4;
 }
 
 
 size_t SpectralImage::indexFromComponents(
     size_t row,
     size_t col
-) const {
-
-#ifndef NDEBUG
-    switch (type()) {
-        case EMISSIVE:
-        assert(row < 4);
-        assert(col == 0);
-        break;
-
-        case REFLECTIVE:
-        assert(row < 4);
-        assert(col < 4);
-        break;
-
-        default:
-        assert(0);
-        break;
-    }
-#endif
+) {
+    assert(row < 4);
+    assert(col < 4);
 
     return 4 * col + row;
 }

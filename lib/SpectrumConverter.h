@@ -3,11 +3,9 @@
 #include <array>
 #include <vector>
 
-#include <SpectrumType.h>
-
 class SpectrumConverter {
     public:
-        SpectrumConverter(SpectrumType type = EMISSIVE);
+        SpectrumConverter(bool emissiveSpectrum = true);
 
         SpectrumConverter(
             const float& cmfFirstWavelength_nm,
@@ -21,6 +19,8 @@ class SpectrumConverter {
         size_t cmfWavelengthIndex(float wavelength_nm) const;
         size_t cmfWavelengthValue(size_t index) const;
 
+        // The spectrum provided must be either emissive or reflective.
+        // This depends on the constructor used.
         void spectrumToXYZ(
             const std::vector<float>& wavelengths_nm,
             const float* spectrum,
@@ -30,6 +30,24 @@ class SpectrumConverter {
         void spectrumToRGB(
             const std::vector<float>& wavelengths_nm,
             const float* spectrum,
+            std::array<float, 3>& RGB
+        ) const;
+
+        // Here, we provide two spectra, one for the reflective part,
+        // the other for the emissive part.
+        // The result will be the lighting multiplied by the reflective
+        // added to the emissive spectrum.
+        void spectraToXYZ(
+            const std::vector<float>& wavelengths_nm,
+            const float* reflectiveSpectrum,
+            const float* emissiveSpectrum,
+            std::array<float, 3>& XYZ
+        ) const;
+
+        void spectraToRGB(
+            const std::vector<float>& wavelengths_nm,
+            const float* reflectiveSpectrum,
+            const float* emissiveSpectrum,
             std::array<float, 3>& RGB
         ) const;
 

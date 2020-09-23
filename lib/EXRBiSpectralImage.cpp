@@ -12,9 +12,8 @@
 
 EXRBiSpectralImage::EXRBiSpectralImage(
     size_t width, size_t height,
-    const std::vector<float>& wavelengths_nm,
-    bool containsPolarisationData
-) : BiSpectralImage(width, height, wavelengths_nm, containsPolarisationData)
+    const std::vector<float>& wavelengths_nm
+) : BiSpectralImage(width, height, wavelengths_nm)
 {}
 
 
@@ -29,6 +28,7 @@ EXRBiSpectralImage::EXRBiSpectralImage(
 
     _width  = exrDataWindow.max.x - exrDataWindow.min.x + 1;
     _height = exrDataWindow.max.y - exrDataWindow.min.y + 1;
+    _spectrumType = REFLECTIVE; // TODO
 
     // -----------------------------------------------------------------------
     // Determine channels' position
@@ -54,7 +54,7 @@ EXRBiSpectralImage::EXRBiSpectralImage(
             || currChannelType == RERADIATION) {
             
             if (muellerComponent > 0) {
-                _containsPolarisationData = true;
+                _spectrumType = _spectrumType | POLARISED;
             }
         }
 
@@ -82,8 +82,8 @@ EXRBiSpectralImage::EXRBiSpectralImage(
     }
 
     // Sort by ascending wavelengths
-    for (size_t s = 0; s < nPolarsiationComponents(); s++) {
-        std::sort(diagonal_wavelengths_nm[s].begin(), diagonal_wavelengths_nm[s].end());
+    for (size_t m = 0; m < nMuellerComponents(); m++) {
+        std::sort(diagonal_wavelengths_nm[m].begin(), diagonal_wavelengths_nm[m].end());
     }
 
     struct {
@@ -102,7 +102,7 @@ EXRBiSpectralImage::EXRBiSpectralImage(
     std::sort(reradiation_wavelengths_nm.begin(), reradiation_wavelengths_nm.end(), sortBispectral);
 
     // Check we have the same wavelength for each stoke component on the main diagonal
-    if (_containsPolarisationData) {
+    if (polarised()) {
         // Wavelength vectors must be of the same size
         const float base_size = diagonal_wavelengths_nm[0].size();
         for (size_t s = 1; s < 4; s++) {
@@ -164,8 +164,8 @@ EXRBiSpectralImage::EXRBiSpectralImage(
 
     // Allocate memory
 
-    for (size_t s = 0; s < nPolarsiationComponents(); s++) {
-        _pixelBuffers[s].resize(nSpectralBands() * _width * _height);
+    for (size_t m = 0; m < nMuellerComponents(); m++) {
+        _reflectivePixelBuffers[m].resize(nSpectralBands() * _width * _height);
     }
 
     _reradiation.resize(reradiationSize() * _width * _height);
@@ -182,11 +182,11 @@ EXRBiSpectralImage::EXRBiSpectralImage(
     const size_t xStrideDiagonal = sizeof(float) * nSpectralBands();
     const size_t yStrideDiagnoal = xStrideDiagonal * _width;
 
-    for (size_t s = 0; s < nPolarsiationComponents(); s++) {
+    for (size_t m = 0; m < nMuellerComponents(); m++) {
         for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
-            char* framebuffer = (char*)(&_pixelBuffers[s][wl_idx]);
+            char* framebuffer = (char*)(&_reflectivePixelBuffers[m][wl_idx]);
             exrFrameBuffer.insert(
-                diagonal_wavelengths_nm[s][wl_idx].second, 
+                diagonal_wavelengths_nm[m][wl_idx].second, 
                 Imf::Slice(compType, framebuffer, xStrideDiagonal, yStrideDiagnoal));
         }
     }
@@ -241,13 +241,13 @@ const {
     const size_t xStrideDiagonal = sizeof(float) * nSpectralBands();
     const size_t yStrideDiagonal = xStrideDiagonal * width();
 
-    for (size_t s = 0; s < nPolarsiationComponents(); s++) {
+    for (size_t m = 0; m < nMuellerComponents(); m++) {
         for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
             // Populate channel name
-            std::string channelName = getDiagonalChannelName(s, _wavelengths_nm[wl_idx]);
+            std::string channelName = getDiagonalChannelName(m, _wavelengths_nm[wl_idx]);
             exrChannels.insert(channelName, Imf::Channel(compType));
 
-            char* framebuffer = (char*)(&_pixelBuffers[s][wl_idx]);
+            char* framebuffer = (char*)(&_reflectivePixelBuffers[m][wl_idx]);
             exrFrameBuffer.insert(
                 channelName, 
                 Imf::Slice(compType, framebuffer, xStrideDiagonal, yStrideDiagonal));

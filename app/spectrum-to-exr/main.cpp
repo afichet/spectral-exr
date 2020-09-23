@@ -58,7 +58,11 @@ int main(int argc, char* argv[]) {
     }
 
     EXRSpectralImage image(1, 1, wavelengths_nm, type);
-    memcpy(&image(0, 0, 0), &values[0], values.size() * sizeof(float));
+    if (type == REFLECTIVE) {
+        memcpy(&image(0, 0, 0, 0, 0), &values[0], values.size() * sizeof(float));
+    } else {
+        memcpy(&image(0, 0, 0, 0), &values[0], values.size() * sizeof(float));
+    }
     image.save(fileOut);
 
     std::cout << "File saved as: [" << fileOut << "]" << std::endl;

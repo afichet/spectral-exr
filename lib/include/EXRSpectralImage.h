@@ -11,8 +11,7 @@ class EXRSpectralImage : public SpectralImage {
         EXRSpectralImage(
             size_t width = 0, size_t height = 0,
             const std::vector<float>& wavelengths_nm = std::vector<float>(),
-            SpectrumType type = EMISSIVE,
-            bool containsPolarisationData = false
+            SpectrumType type = EMISSIVE
         );
 
         EXRSpectralImage(
@@ -27,8 +26,13 @@ class EXRSpectralImage : public SpectralImage {
             float& wavelengths_nm
         ) const;
 
-        std::string getChannelName(
-            int polarisationComponent,
+        std::string getStokesChannelName(
+            int stokesComponent,
+            float wavelength_nm
+        ) const;
+
+        std::string getMuellerChannelName(
+            int muellerComponent,
             float wavelength_nm
         ) const;
 

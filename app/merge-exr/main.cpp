@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
     // Now, create the spectral image
     EXRSpectralImage spectralImage(width, height, wavelengths, EMISSIVE);
 
-    memcpy(&spectralImage(0, 0, 0), &spectralFramebuffer[0], width * height * wavelengths.size() * sizeof(float));
+    memcpy(&spectralImage(0, 0, 0, 0), &spectralFramebuffer[0], width * height * wavelengths.size() * sizeof(float));
 
     std::cout << std::endl;
 
