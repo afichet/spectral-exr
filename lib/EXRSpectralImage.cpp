@@ -39,7 +39,7 @@ EXRSpectralImage::EXRSpectralImage(
 
     const Imf::ChannelList& exrChannels = exrHeader.channels();
 
-    std::array<std::vector<std::pair<float, std::string>>, 4> wavelengths_nm_S;
+    std::array<std::vector<std::pair<float, std::string>>, 16> wavelengths_nm_S;
     bool hasSpectralData = false;
     _spectrumType = UNDEFINED;
 
@@ -52,6 +52,7 @@ EXRSpectralImage::EXRSpectralImage(
 
         if (spectralChanel != UNDEFINED) {
             // We want to make sure there is not both reflective and emissive data in the same image
+            // TODO: this shall not be a problem: we can have both reflective and emissive...
             if (_spectrumType != UNDEFINED && _spectrumType != spectralChanel) {
                 throw INCORRECT_FORMED_FILE;
             }
