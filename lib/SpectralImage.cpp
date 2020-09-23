@@ -116,7 +116,7 @@ const {
 
             memcpy(&rgbImage[3 * i], &rgb[0], 3 * sizeof(float));
         }
-    } else {
+    } else if (reflective()) {
         for (size_t i = 0; i < width() * height(); i++) {
             sc.spectrumToRGB(
                 _wavelengths_nm,

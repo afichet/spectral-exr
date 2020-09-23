@@ -134,6 +134,7 @@ void SpectrumConverter::spectraToRGB(
     }
 }
 
+
 void SpectrumConverter::spectrumToXYZ(
     const std::vector<float>& wavelengths_nm,
     const float* diagonal,
@@ -288,6 +289,48 @@ void SpectrumConverter::spectrumToRGB(
 ) const {
     std::array<float, 3> XYZ;
     spectrumToXYZ(wavelengths_nm, diagonal, reradiation, XYZ);
+
+    memset(&RGB[0], 0, 3*sizeof(float));
+
+    // Convert to RGB using the provided matrix
+    for (size_t channel = 0; channel < 3; channel++) {
+        for (size_t col = 0; col < 3; col++) {
+            RGB[channel] += XYZ[col] * _xyzToRgb[3 * channel + col];
+        }
+
+        // Ensure RGB values are > 0
+        RGB[channel] = std::max(RGB[channel], 0.F);        
+    }
+}
+
+void SpectrumConverter::spectraToXYZ(
+    const std::vector<float>& wavelengths_nm,
+    const float* diagonal,
+    const float* reradiation,
+    const float* emissiveSpectrum,
+    std::array<float, 3>& XYZ
+) const {
+    std::array<float, 3> XYZ_refl;
+    std::array<float, 3> XYZ_emissive;
+
+    spectrumToXYZ(wavelengths_nm, diagonal, reradiation, XYZ_refl);
+    emissiveSpectrumToXYZ(wavelengths_nm, emissiveSpectrum, XYZ_emissive);
+
+    for (size_t c = 0; c < 3; c++) {
+        XYZ[c] = XYZ_refl[c] + XYZ_emissive[c];
+    }
+}
+
+
+void SpectrumConverter::spectraToRGB(
+    const std::vector<float>& wavelengths_nm,
+    const float* diagonal,
+    const float* reradiation,
+    const float* emissiveSpectrum,
+    std::array<float, 3>& RGB
+) const {
+    std::array<float, 3> XYZ;
+    spectraToXYZ(wavelengths_nm, diagonal, reradiation, emissiveSpectrum, XYZ);
 
     memset(&RGB[0], 0, 3*sizeof(float));
 

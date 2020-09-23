@@ -4,7 +4,6 @@
 #include <regex>
 #include <algorithm>
 #include <sstream>
-#include <cassert>
 
 #include <OpenEXR/ImfInputFile.h>
 #include <OpenEXR/ImfOutputFile.h>
@@ -336,7 +335,7 @@ SpectrumType EXRSpectralImage::channelType(
     const std::string& channelName,
     int& polarisationComponent,
     float& wavelength_nm
-) const {
+) {
     const std::regex expr
         ("^((S([0-3]))|(M([0-3])([0-3])))\\.(\\d*,?\\d*([Ee][+-]?\\d+)?)(Y|Z|E|P|T|G|M|k|h|da|d|c|m|u|n|p)?(m|Hz)$");
     std::smatch matches;
@@ -392,9 +391,7 @@ SpectrumType EXRSpectralImage::channelType(
 std::string EXRSpectralImage::getStokesChannelName(
     int stokesComponent,
     float wavelength_nm
-) const {
-    assert(emissive());
-
+) {
     std::stringstream b;
     std::string wavelengthStr = std::to_string(wavelength_nm);
     std::replace(wavelengthStr.begin(), wavelengthStr.end(), '.', ',');
@@ -425,9 +422,7 @@ std::string EXRSpectralImage::getStokesChannelName(
 std::string EXRSpectralImage::getMuellerChannelName(
     int polarisationComponent,
     float wavelength_nm
-) const {
-    assert(reflective());
-
+) {
     std::stringstream b;
     std::string wavelengthStr = std::to_string(wavelength_nm);
     std::replace(wavelengthStr.begin(), wavelengthStr.end(), '.', ',');

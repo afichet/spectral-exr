@@ -66,6 +66,24 @@ class SpectrumConverter {
             std::array<float, 3>& RGB
         ) const;
 
+
+        // Bi-spectral
+        void spectraToXYZ(
+            const std::vector<float>& wavelengths_nm,
+            const float* diagonal,
+            const float* reradiation,
+            const float* emissiveSpectrum,
+            std::array<float, 3>& XYZ
+        ) const;
+
+        void spectraToRGB(
+            const std::vector<float>& wavelengths_nm,
+            const float* diagonal,
+            const float* reradiation,
+            const float* emissiveSpectrum,
+            std::array<float, 3>& RGB
+        ) const;
+
     protected:
         void emissiveSpectrumToXYZ(
             const std::vector<float>& wavelengths_nm,

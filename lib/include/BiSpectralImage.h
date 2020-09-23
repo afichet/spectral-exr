@@ -7,7 +7,8 @@ class BiSpectralImage: public SpectralImage {
     public:
         BiSpectralImage(
             size_t width = 0, size_t height = 0,
-            const std::vector<float>& wavelengths_nm = std::vector<float>()
+            const std::vector<float>& wavelengths_nm = std::vector<float>(),
+            SpectrumType type = REFLECTIVE
         );
 
         virtual void exportChannels(const std::string& path) const;
@@ -40,7 +41,7 @@ class BiSpectralImage: public SpectralImage {
             wlTo_idx = k + 1;
         }
 
-        virtual float getPixelValue(
+        virtual float getReflectiveValue(
             size_t x, size_t y, 
             size_t wavelengthFrom_idx, size_t wavelengthTo_idx,
             size_t muellerRow,

@@ -11,10 +11,10 @@
 
 BiSpectralImage::BiSpectralImage(
     size_t width, size_t height,
-    const std::vector<float>& wavelengths_nm
+    const std::vector<float>& wavelengths_nm,
+    SpectrumType type
 )
-    // TODO: spectrum type shall be set explicitly
-    : SpectralImage(width, height, wavelengths_nm, REFLECTIVE)
+    : SpectralImage(width, height, wavelengths_nm, type)
 {
     _reradiation.resize(reradiationSize() * _width * _height);
 }
@@ -22,6 +22,7 @@ BiSpectralImage::BiSpectralImage(
 
 void BiSpectralImage::exportChannels(const std::string& path) 
 const {
+    // TODO: support the emissive part
     // Export the diagonal
     SpectralImage::exportChannels(path);
 
@@ -58,29 +59,45 @@ const {
 void BiSpectralImage::getRGBImage(std::vector<float>& rgbImage) 
 const {
     rgbImage.resize(3 * width() * height());
-    SpectrumConverter sc(emissive()); // TODO
+    SpectrumConverter sc(emissive());
     
     std::array<float, 3> rgb;
 
-    for (size_t i = 0; i < width() * height(); i++) {
-        sc.spectrumToRGB(
-            _wavelengths_nm, 
-            &_reflectivePixelBuffers[0][nSpectralBands() * i],
-            &_reradiation[reradiationSize() * i],
-            rgb
-            );
+    if (emissive() && reflective()) {
+        for (size_t i = 0; i < width() * height(); i++) {
+            sc.spectraToRGB(
+                _wavelengths_nm,
+                &_reflectivePixelBuffers[0][nSpectralBands() * i],
+                &_reradiation[reradiationSize() * i],
+                &_emissivePixelBuffers[0][nSpectralBands() * i],
+                rgb
+                );
 
-        memcpy(&rgbImage[3 * i], &rgb[0], 3 * sizeof(float));
+            memcpy(&rgbImage[3 * i], &rgb[0], 3 * sizeof(float));
+        }
+    } else if (reflective()) {
+        for (size_t i = 0; i < width() * height(); i++) {
+            sc.spectrumToRGB(
+                _wavelengths_nm,
+                &_reflectivePixelBuffers[0][nSpectralBands() * i],
+                &_reradiation[reradiationSize() * i],
+                rgb
+                );
+
+            memcpy(&rgbImage[3 * i], &rgb[0], 3 * sizeof(float));
+        }
+    } else {
+        SpectralImage::getRGBImage(rgbImage);
     }
 }
 
-float BiSpectralImage::getPixelValue(
+float BiSpectralImage::getReflectiveValue(
     size_t x, size_t y, 
     size_t wavelengthFrom_idx, size_t wavelengthTo_idx,
     size_t muellerRow,
     size_t muellerColumn) 
 const {
-    if (wavelengthFrom_idx > wavelengthTo_idx) {
+    if (!reflective() || wavelengthFrom_idx > wavelengthTo_idx) {
         return 0.F;
     }
 

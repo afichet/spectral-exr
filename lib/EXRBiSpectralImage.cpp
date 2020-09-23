@@ -12,8 +12,9 @@
 
 EXRBiSpectralImage::EXRBiSpectralImage(
     size_t width, size_t height,
-    const std::vector<float>& wavelengths_nm
-) : BiSpectralImage(width, height, wavelengths_nm)
+    const std::vector<float>& wavelengths_nm,
+    SpectrumType type
+) : BiSpectralImage(width, height, wavelengths_nm, type)
 {}
 
 

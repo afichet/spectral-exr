@@ -116,10 +116,11 @@ class SpectralImage {
         size_t _width, _height;
         
         
-        // We can have up to 9 pixel buffers:
-        // - 1 for not polarised image
+        // We can have up to 20 pixel buffers:
+        // - 1 for emissive unpolarised images (S0)
+        // - 1 for reflective unpolarised images (M00)
         // - 4 for emissive polarised images (S0, S1, S2, S3)
-        // - 9 for reflective polarised images (M00, M01, M02, M03, M10, ... M33)
+        // - 16 for reflective polarised images (M00, M01, M02, M03, M10, ... M33)
         
         std::array<std::vector<float>, 4> _reflectivePixelBuffers;
         std::array<std::vector<float>, 16> _emissivePixelBuffers;
