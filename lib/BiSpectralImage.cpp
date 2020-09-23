@@ -2,6 +2,7 @@
 
 #include <sstream>
 #include <cassert>
+#include <cmath>
 
 #include <OpenEXR/ImfOutputFile.h>
 #include <OpenEXR/ImfChannelList.h>
@@ -91,6 +92,32 @@ const {
     }
 }
 
+
+size_t BiSpectralImage::idxFromWavelengthIdx(
+    size_t wlFrom_idx,
+    size_t wlTo_idx
+) {
+    if (wlFrom_idx < wlTo_idx) {
+        return wlTo_idx * (wlTo_idx - 1) / 2 + wlFrom_idx;
+    } else {
+        return -1;
+    }
+}
+
+
+void BiSpectralImage::wavelengthsIdxFromIdx(
+    size_t rerad_idx,
+    size_t& wlFrom_idx,
+    size_t& wlTo_idx
+) {
+    float k = std::floor((std::sqrt(1.F + 8.F * float(rerad_idx)) - 1.F) / 2.F);
+    float j = rerad_idx - k * (k + 1) / 2.F;
+
+    wlFrom_idx = j;
+    wlTo_idx = k + 1;
+}
+
+
 float BiSpectralImage::getReflectiveValue(
     size_t x, size_t y, 
     size_t wavelengthFrom_idx, size_t wavelengthTo_idx,
@@ -103,6 +130,7 @@ const {
 
     return (*this)(x, y, wavelengthFrom_idx, wavelengthTo_idx, muellerRow, muellerColumn);
 }
+
 
 float& BiSpectralImage::operator()(
     size_t x, size_t y, 

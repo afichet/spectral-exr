@@ -11,6 +11,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(OpenEXR REQUIRED)
 
+if (APPLE)
+    set(CMAKE_INSTALL_LIBDIR lib)
+endif()
+
 if (OpenEXR_FOUND)
     set(PUBLIC_HEADERS
         include/SpecturmType.h
@@ -45,7 +49,7 @@ if (OpenEXR_FOUND)
     
     target_link_libraries(EXRSpectralImage PUBLIC ${OpenEXR_LIBRARIES})
 
-    if(MSVC)
+    if (MSVC)
         target_compile_options(EXRSpectralImage PUBLIC /W3)
     else()
         target_compile_options(EXRSpectralImage PUBLIC -Wall -Wextra -Wpedantic)

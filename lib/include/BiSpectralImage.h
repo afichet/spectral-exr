@@ -21,25 +21,13 @@ class BiSpectralImage: public SpectralImage {
         static size_t idxFromWavelengthIdx(
             size_t wlFrom_idx,
             size_t wlTo_idx
-        ) {
-            if (wlFrom_idx < wlTo_idx) {
-                return wlTo_idx * (wlTo_idx - 1) / 2 + wlFrom_idx;
-            } else {
-                return -1;
-            }
-        }
+        );
 
-        void wavelengthsIdxFromIdx(
+        static void wavelengthsIdxFromIdx(
             size_t rerad_idx,
             size_t& wlFrom_idx,
             size_t& wlTo_idx
-        ) const {
-            float k = std::floor((std::sqrt(1.F + 8.F * float(rerad_idx)) - 1.F) / 2.F);
-            float j = rerad_idx - k * (k + 1) / 2.F;
-
-            wlFrom_idx = j;
-            wlTo_idx = k + 1;
-        }
+        );
 
         virtual float getReflectiveValue(
             size_t x, size_t y, 
