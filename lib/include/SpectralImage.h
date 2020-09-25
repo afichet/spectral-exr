@@ -114,8 +114,7 @@ class SpectralImage {
 
     protected:
         size_t _width, _height;
-        
-        
+                
         // We can have up to 20 pixel buffers:
         // - 1 for emissive unpolarised images (S0)
         // - 1 for reflective unpolarised images (M00)
