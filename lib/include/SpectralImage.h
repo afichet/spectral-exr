@@ -7,6 +7,8 @@
 #include <SpectrumAttribute.h>
 #include <SpectrumType.h>
 
+namespace SEXR {
+
 class SpectralImage {
     public:
         enum Errors {
@@ -131,3 +133,5 @@ class SpectralImage {
         SpectrumAttribute _cameraReponse;
         std::vector<SpectrumAttribute> _channelSensitivities;
 };
+
+} // namespace SEXR

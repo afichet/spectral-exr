@@ -5,6 +5,7 @@
 #include <string>
 #include <regex>
 
+namespace SEXR {
 
 SpectrumAttribute::SpectrumAttribute() {}
 
@@ -80,3 +81,5 @@ const {
 
     return Imf::StringAttribute(attrValue.str());
 }
+
+} // namespace SEXR

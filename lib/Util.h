@@ -4,6 +4,8 @@
 #include <map>
 #include <stdexcept>
 
+namespace SEXR {
+
 class Util {
     public:
         static float interp(float x, float x0, float x1, float y0, float y1)
@@ -71,3 +73,5 @@ class Util {
             }
         }
 };
+
+} // namespace SEXR

@@ -5,6 +5,7 @@
 #include <EXRSpectralImage.h>
 #include <SpectrumAttribute.h>
 
+using namespace SEXR;
 
 void writeAttributeCSVIfExists(const SpectrumAttribute& attr, const std::string& filename) {
     if (attr.size() > 0) {

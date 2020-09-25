@@ -1,5 +1,7 @@
 #pragma once
 
+namespace SEXR {
+
 const float XYZ_TO_SRGB_D65_MATRIX[9] = {
     3.2404542F, -1.5371385F, -0.4985314F,
     -0.9692660F, 1.8760108F, 0.0415560F,
@@ -314,3 +316,5 @@ const  float D_65_SPD[531] = {
     58.015000f,  58.302200f,  58.589400f,  58.876500f,  59.163700f,  59.450900f,  59.738100f,  60.025300f,  60.312500};
 
 const float D_65_FIRST_WAVELENGTH_NM = 300.F;
+
+} // namespace SEXR

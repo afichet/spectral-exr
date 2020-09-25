@@ -1,5 +1,6 @@
 #pragma once
 
+namespace SEXR {
 
 enum SpectrumType {
     UNDEFINED  = 0,
@@ -34,3 +35,5 @@ inline bool isPolarised(SpectrumType s)
 {
   return (s & POLARISED) != 0;
 }
+
+} // namespace SEXR

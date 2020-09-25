@@ -6,6 +6,8 @@
 
 #include "SpectralImage.h"
 
+namespace SEXR {
+
 class EXRSpectralImage : public SpectralImage {
     public:
         EXRSpectralImage(
@@ -40,3 +42,5 @@ class EXRSpectralImage : public SpectralImage {
     static constexpr const char* LENS_TRANSMISSION_ATTR = "Lens transmission"; 
     static constexpr const char* CAMERA_RESPONSE_ATTR   = "Camera response"; 
 };
+
+} // namespace SEXR

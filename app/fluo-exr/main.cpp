@@ -6,6 +6,7 @@
 
 #include "fluo_data.h"
 
+using namespace SEXR;
 
 int main(/*int argc, char *argv[]*/) {
     const size_t width = 150;

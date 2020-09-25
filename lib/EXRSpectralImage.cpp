@@ -10,6 +10,8 @@
 #include <OpenEXR/ImfChannelList.h>
 #include <OpenEXR/ImfStringAttribute.h>
 
+namespace SEXR {
+
 EXRSpectralImage::EXRSpectralImage(
     size_t width, size_t height,
     const std::vector<float>& wavelengths_nm,
@@ -450,3 +452,5 @@ std::string EXRSpectralImage::getMuellerChannelName(
 
     return channelName;
 }
+
+} // namespace SEXR

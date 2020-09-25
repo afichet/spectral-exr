@@ -9,6 +9,7 @@
 #include <OpenEXR/ImfOutputFile.h>
 #include <OpenEXR/ImfChannelList.h>
 
+namespace SEXR {
 
 EXRBiSpectralImage::EXRBiSpectralImage(
     size_t width, size_t height,
@@ -441,3 +442,5 @@ std::string EXRBiSpectralImage::getReradiationChannelName(
 
     return channelName;
 }
+
+} // namespace SEXR

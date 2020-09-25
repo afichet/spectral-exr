@@ -9,6 +9,7 @@
 
 #include "SpectrumConverter.h"
 
+namespace SEXR {
 
 BiSpectralImage::BiSpectralImage(
     size_t width, size_t height,
@@ -168,3 +169,5 @@ const {
 
     return _reradiation[reradiationSize() * (y * width() + x) + reradIdx];
 }
+
+} // namespace SEXR

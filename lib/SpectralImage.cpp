@@ -9,6 +9,7 @@
 
 #include "SpectrumConverter.h"
 
+namespace SEXR {
 
 SpectralImage::SpectralImage(
     size_t width, size_t height,
@@ -345,3 +346,5 @@ size_t SpectralImage::indexFromComponents(
 
     return 4 * col + row;
 }
+
+} // namespace SEXR

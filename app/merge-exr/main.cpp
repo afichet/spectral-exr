@@ -11,6 +11,8 @@
 #include <OpenEXR/ImfRgbaFile.h>
 #include <OpenEXR/ImfArray.h>
 
+using namespace SEXR;
+
 bool checkExtension(const std::string& path) 
 {
     if (path.length() < 4) { return false; }

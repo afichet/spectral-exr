@@ -2,6 +2,7 @@
 
 #include "SpectralImage.h"
 
+namespace SEXR {
 
 class BiSpectralImage: public SpectralImage {
     public:
@@ -53,3 +54,5 @@ class BiSpectralImage: public SpectralImage {
         // pixel stride is reradiationSize()
         std::vector<float> _reradiation; 
 };
+
+} // namespace SEXR

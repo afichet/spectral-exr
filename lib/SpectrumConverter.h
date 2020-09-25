@@ -3,6 +3,8 @@
 #include <array>
 #include <vector>
 
+namespace SEXR {
+
 class SpectrumConverter {
     public:
         SpectrumConverter(bool emissiveSpectrum = true);
@@ -107,3 +109,5 @@ class SpectrumConverter {
         std::array<std::vector<float>, 3> _xyzCmfs;
         std::array<float, 9> _xyzToRgb;
 };
+
+} // namespace SEXR

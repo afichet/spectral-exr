@@ -3,6 +3,8 @@
 #include <vector>
 #include <OpenEXR/ImfStandardAttributes.h>
 
+namespace SEXR {
+
 class SpectrumAttribute {
     public:
         enum Error {
@@ -41,3 +43,5 @@ class SpectrumAttribute {
         std::vector<float> _wavelengths_nm;
         std::vector<float> _values;
 };
+
+} // namespace SEXR

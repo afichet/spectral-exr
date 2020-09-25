@@ -7,6 +7,7 @@
 #include <cmath>
 #include <functional>
 
+namespace SEXR {
 
 SpectrumConverter::SpectrumConverter(bool emissiveSpectrum)
     : _emissiveSpectrum(emissiveSpectrum)
@@ -497,3 +498,5 @@ void SpectrumConverter::reflectiveSpectrumToXYZ(
         XYZ[c] /= normalisation_factor;
     }
 }
+
+} // namespace SEXR

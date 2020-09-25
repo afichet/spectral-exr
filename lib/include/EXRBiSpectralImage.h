@@ -2,6 +2,8 @@
 
 #include "BiSpectralImage.h"
 
+namespace SEXR {
+
 class EXRBiSpectralImage: public BiSpectralImage {
     enum ChannelType {
         DIAGONAL,
@@ -39,6 +41,6 @@ class EXRBiSpectralImage: public BiSpectralImage {
             float wavelength_nm,
             float reradiation_wavelength_nm
         ) const;
-
-
 };
+
+} // namespace SEXR
