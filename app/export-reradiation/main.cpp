@@ -21,6 +21,10 @@ int main(int argc, char* argv[])
     const size_t y = std::stoi(argv[3]);
     std::ofstream tabularOut(argv[4]);
 
+    if (x >= image.width() || y >= image.height()) {
+        std::cerr << "Coordinates out of bound." << std::endl;
+        return 0;
+    }
 
     tabularOut << "# ";
     for (size_t wl_i_idx = 0; wl_i_idx < image.nSpectralBands(); wl_i_idx++) {

@@ -28,7 +28,7 @@ int main(/*int argc, char *argv[]*/) {
       wavelengths_nm[i] = wl_start + i * wl_inc;
     }
 
-    EXRBiSpectralImage fluoImage(width, height, wavelengths_nm);
+    EXRBiSpectralImage fluoImage(width, height, wavelengths_nm, BISPECTRAL);
 
     size_t x_sz = 50;
     size_t y_sz = 50;

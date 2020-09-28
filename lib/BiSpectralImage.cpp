@@ -18,13 +18,14 @@ BiSpectralImage::BiSpectralImage(
 )
     : SpectralImage(width, height, wavelengths_nm, type)
 {
-    _reradiation.resize(reradiationSize() * _width * _height);
+    if (bispectral()) {
+        _reradiation.resize(reradiationSize() * _width * _height);
+    }
 }
 
 
 void BiSpectralImage::exportChannels(const std::string& path) 
 const {
-    // TODO: support the emissive part
     // Export the diagonal
     SpectralImage::exportChannels(path);
 
@@ -77,6 +78,13 @@ const {
 
             memcpy(&rgbImage[3 * i], &rgb[0], 3 * sizeof(float));
         }
+
+        // Exposure compensation
+        for (size_t i = 0; i < width() * height(); i++) {
+            for (size_t c = 0; c < 3; c++) {
+                rgbImage[3 * i + c] *= std::pow(2.F, _ev);
+            }
+        }
     } else if (reflective()) {
         for (size_t i = 0; i < width() * height(); i++) {
             sc.spectrumToRGB(
@@ -87,6 +95,13 @@ const {
                 );
 
             memcpy(&rgbImage[3 * i], &rgb[0], 3 * sizeof(float));
+        }
+
+        // Exposure compensation
+        for (size_t i = 0; i < width() * height(); i++) {
+            for (size_t c = 0; c < 3; c++) {
+                rgbImage[3 * i + c] *= std::pow(2.F, _ev);
+            }
         }
     } else {
         SpectralImage::getRGBImage(rgbImage);
@@ -125,11 +140,22 @@ float BiSpectralImage::getReflectiveValue(
     size_t muellerRow,
     size_t muellerColumn) 
 const {
+    assert(x < width());
+    assert(y < height());
+    assert(wavelengthFrom_idx < nSpectralBands());
+    assert(wavelengthTo_idx < nSpectralBands());
+    assert(muellerRow < 4);
+    assert(muellerColumn < 4);
+
     if (!reflective() || wavelengthFrom_idx > wavelengthTo_idx) {
         return 0.F;
     }
 
-    return (*this)(x, y, wavelengthFrom_idx, wavelengthTo_idx, muellerRow, muellerColumn);
+    if (!bispectral()) {
+        return 0.F;
+    }
+
+    return this->operator()(x, y, wavelengthFrom_idx, wavelengthTo_idx, muellerRow, muellerColumn);
 }
 
 
@@ -139,13 +165,25 @@ float& BiSpectralImage::operator()(
     size_t muellerRow,
     size_t muellerColumn)
 {
+    assert(reflective());
+    assert(x < width());
+    assert(y < height());
+    assert(wavelengthFrom_idx < nSpectralBands());
+    assert(wavelengthTo_idx < nSpectralBands());
+    assert(muellerRow < 4);
+    assert(muellerColumn < 4);
+
+    assert(wavelengthFrom_idx <= wavelengthTo_idx);
+
     if (wavelengthFrom_idx == wavelengthTo_idx) {
         return SpectralImage::operator()(x, y, wavelengthFrom_idx, muellerRow, muellerColumn);
     }
-        
+    
+    assert(bispectral());
     assert(muellerRow == 0);
     assert(muellerColumn == 0);
-    
+    assert(_reradiation.size() == reradiationSize() * width() * height());
+
     size_t reradIdx = idxFromWavelengthIdx(wavelengthFrom_idx, wavelengthTo_idx);
 
     return _reradiation[reradiationSize() * (y * width() + x) + reradIdx];
@@ -158,12 +196,22 @@ const float& BiSpectralImage::operator()(
     size_t muellerRow,
     size_t muellerColumn) 
 const {
+    assert(reflective());
+    assert(x < width());
+    assert(y < height());
+    assert(wavelengthFrom_idx < nSpectralBands());
+    assert(wavelengthTo_idx < nSpectralBands());
+    assert(muellerRow < 4);
+    assert(muellerColumn < 4);
+
     if (wavelengthFrom_idx == wavelengthTo_idx) {
         return SpectralImage::operator()(x, y, wavelengthFrom_idx, muellerRow, muellerColumn);
     }
 
+    assert(bispectral());
     assert(muellerRow == 0);
     assert(muellerColumn == 0);
+    assert(_reradiation.size() == reradiationSize() * width() * height());
 
     size_t reradIdx = idxFromWavelengthIdx(wavelengthFrom_idx, wavelengthTo_idx);
 

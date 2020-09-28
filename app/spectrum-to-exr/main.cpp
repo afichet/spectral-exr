@@ -44,6 +44,11 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "Found " << wavelengths_nm.size() << " samples" << std::endl;
+    if (wavelengths_nm.size() == 0) {
+        std::cerr << "The provided spectrum is empty!" << std::endl;
+
+        return -1;
+    }
 
     SpectrumType type;
 

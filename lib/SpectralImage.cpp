@@ -18,6 +18,7 @@ SpectralImage::SpectralImage(
 )
     : _width(width)
     , _height(height)
+    , _ev(0)
     , _wavelengths_nm(wavelengths_nm)
     , _spectrumType(type)
 {
@@ -128,6 +129,13 @@ const {
             memcpy(&rgbImage[3 * i], &rgb[0], 3 * sizeof(float));
         }
     }
+
+    // Exposure compensation
+    for (size_t i = 0; i < width() * height(); i++) {
+        for (size_t c = 0; c < 3; c++) {
+            rgbImage[3 * i + c] *= std::pow(2.F, _ev);
+        }
+    }
 }
 
 
@@ -188,6 +196,19 @@ const {
     return _channelSensitivities[wl_idx]; 
 }
 
+
+void SpectralImage::setExposureCompensationValue(float ev)
+{
+    _ev = ev;
+}
+
+
+const float& SpectralImage::exposureCompensationValue()
+const {
+    return _ev;
+}
+
+
 // Access the emissive part
 
 float& SpectralImage::operator()(
@@ -231,8 +252,8 @@ float& SpectralImage::operator()(
     assert(y < height());
     assert(wavelength_idx < nSpectralBands());
     assert(reflective());
-    assert(muellerRow <= (isPolarised() ? 3 : 1));
-    assert(muellerColumn <= (isPolarised() ? 3 : 1));
+    assert(muellerRow <= (polarised() ? 3 : 1));
+    assert(muellerColumn <= (polarised() ? 3 : 1));
 
     return _reflectivePixelBuffers[indexFromComponents(muellerRow, muellerColumn)][nSpectralBands() * (y * width() + x) + wavelength_idx];
 }
@@ -248,8 +269,8 @@ const float& SpectralImage::operator()(
     assert(y < height());
     assert(wavelength_idx < nSpectralBands());
     assert(reflective());
-    assert(muellerRow <= (isPolarised() ? 3 : 1));
-    assert(muellerColumn <= (isPolarised() ? 3 : 1));
+    assert(muellerRow <= (polarised() ? 3 : 1));
+    assert(muellerColumn <= (polarised() ? 3 : 1));
 
     return _reflectivePixelBuffers[indexFromComponents(muellerRow, muellerColumn)][nSpectralBands() * (y * width() + x) + wavelength_idx];
 }
@@ -324,6 +345,7 @@ size_t SpectralImage::nMuellerComponents() const {
 bool SpectralImage::polarised()    const { return isPolarised(_spectrumType); }
 bool SpectralImage::emissive()     const { return isEmissive(_spectrumType); }
 bool SpectralImage::reflective()   const { return isReflective(_spectrumType); }
+bool SpectralImage::bispectral()   const { return isBispectral(_spectrumType); }
 SpectrumType SpectralImage::type() const { return _spectrumType; }
 
 

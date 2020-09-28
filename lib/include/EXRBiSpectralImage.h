@@ -5,13 +5,6 @@
 namespace SEXR {
 
 class EXRBiSpectralImage: public BiSpectralImage {
-    enum ChannelType {
-        DIAGONAL,
-        RERADIATION,
-        RGBA,
-        OTHER
-    };
-
     public:
         EXRBiSpectralImage(
             size_t width = 0, size_t height = 0,
@@ -25,22 +18,32 @@ class EXRBiSpectralImage: public BiSpectralImage {
 
         void save(const std::string& filename) const;
 
-        ChannelType channelType(
+        static SpectrumType channelType(
             const std::string& channelName, 
-            int& muellerComponent,
+            int& polarisationComponent,
             float& wavelengths_nm,
             float& reradiation_wavelength_nm
-        ) const;
+        );
 
-        std::string getDiagonalChannelName(
+        static std::string getStokesChannelName(
+            int stokesComponent,
+            float wavelength_nm
+        );
+
+        static std::string getMuellerChannelName(
             int muellerComponent,
             float wavelength_nm
-        ) const;
+        );
 
-        std::string getReradiationChannelName(
+        static std::string getReradiationChannelName(
             float wavelength_nm,
             float reradiation_wavelength_nm
-        ) const;
+        );
+
+    static constexpr const char* SPECTRUM_TYPE_ATTR         = "Spectrum type"; 
+    static constexpr const char* LENS_TRANSMISSION_ATTR     = "Lens transmission"; 
+    static constexpr const char* CAMERA_RESPONSE_ATTR       = "Camera response"; 
+    static constexpr const char* EXPOSURE_COMPENSATION_ATTR = "EV";
 };
 
 } // namespace SEXR

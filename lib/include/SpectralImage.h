@@ -37,10 +37,12 @@ class SpectralImage {
 
         const SpectrumAttribute& cameraResponse()   const;
 
+
         void setLensTransmission(
             const std::vector<float>& wavelengths_nm,
             const std::vector<float>& values
         );
+
 
         const SpectrumAttribute& lensTransmission() const;
 
@@ -50,9 +52,15 @@ class SpectralImage {
             const std::vector<float>& values
         );
 
+        
         const std::vector<SpectrumAttribute>& channelSensitivities() const;
 
         const SpectrumAttribute& channelSensitivity(size_t wl_idx) const;
+
+        
+        void setExposureCompensationValue(float ev);
+
+        const float& exposureCompensationValue() const;
 
         // Access the emissive part
         virtual float& operator()(
@@ -101,6 +109,7 @@ class SpectralImage {
         bool polarised()    const;
         bool emissive()     const;
         bool reflective()   const;
+        bool bispectral()   const;
         SpectrumType type() const;
 
         static void componentsFromIndex(
@@ -116,6 +125,7 @@ class SpectralImage {
 
     protected:
         size_t _width, _height;
+        float _ev;
                 
         // We can have up to 20 pixel buffers:
         // - 1 for emissive unpolarised images (S0)

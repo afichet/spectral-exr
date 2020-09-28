@@ -4,6 +4,7 @@
 #include <regex>
 #include <algorithm>
 #include <sstream>
+#include <cassert>
 
 #include <OpenEXR/ImfInputFile.h>
 #include <OpenEXR/ImfOutputFile.h>
@@ -18,8 +19,7 @@ EXRSpectralImage::EXRSpectralImage(
     SpectrumType type
 )
     : SpectralImage(width, height, wavelengths_nm, type)
-{
-}
+{}
 
 
 EXRSpectralImage::EXRSpectralImage(
@@ -51,12 +51,12 @@ EXRSpectralImage::EXRSpectralImage(
         float wavelength_nm;
         SpectrumType spectralChanel = channelType(channel.name(), polarisationComponent, wavelength_nm);
 
-        if (spectralChanel != UNDEFINED) {
+        if (spectralChanel != SpectrumType::UNDEFINED) {
             _spectrumType = _spectrumType | spectralChanel;
             
-            if (spectralChanel & EMISSIVE) {
+            if (isEmissive(spectralChanel)) {
                 wavelengths_nm_S[polarisationComponent].push_back(std::make_pair(wavelength_nm, channel.name()));
-            } else if (spectralChanel & REFLECTIVE) {
+            } else if (isReflective(spectralChanel)) {
                 wavelengths_nm_M[polarisationComponent].push_back(std::make_pair(wavelength_nm, channel.name()));
             }
         }
@@ -67,8 +67,8 @@ EXRSpectralImage::EXRSpectralImage(
         std::sort(wavelengths_nm_S[s].begin(), wavelengths_nm_S[s].end());
     }
 
-    for (size_t s = 0; s < nMuellerComponents(); s++) {
-        std::sort(wavelengths_nm_M[s].begin(), wavelengths_nm_M[s].end());
+    for (size_t m = 0; m < nMuellerComponents(); m++) {
+        std::sort(wavelengths_nm_M[m].begin(), wavelengths_nm_M[m].end());
     }
 
     // -------------------------------------------------------------------------
@@ -120,7 +120,6 @@ EXRSpectralImage::EXRSpectralImage(
         }
     }
 
-    
     // If both reflective and emissive, we need to perform a last sanity check
     if (emissive() && reflective())
     {
@@ -156,16 +155,12 @@ EXRSpectralImage::EXRSpectralImage(
     }
 
     // We allocate pixel buffers memory
-    if (emissive()) {
-        for (size_t s = 0; s < nStokesComponents(); s++) {
-            _emissivePixelBuffers[s].resize(nSpectralBands() * _width * _height);
-        }
+    for (size_t s = 0; s < nStokesComponents(); s++) {
+        _emissivePixelBuffers[s].resize(nSpectralBands() * width() * height());
     }
 
-    if (reflective()) {
-        for (size_t s = 0; s < nMuellerComponents(); s++) {
-            _reflectivePixelBuffers[s].resize(nSpectralBands() * _width * _height);
-        }
+    for (size_t m = 0; m < nMuellerComponents(); m++) {
+        _reflectivePixelBuffers[m].resize(nSpectralBands() * width() * height());
     }
 
     // -----------------------------------------------------------------------
@@ -187,11 +182,11 @@ EXRSpectralImage::EXRSpectralImage(
         }
     }
 
-    for (size_t s = 0; s < nMuellerComponents(); s++) {
+    for (size_t m = 0; m < nMuellerComponents(); m++) {
         for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
-            char* ptrS = (char*)(&_reflectivePixelBuffers[s][wl_idx]);
+            char* ptrS = (char*)(&_reflectivePixelBuffers[m][wl_idx]);
             exrFrameBuffer.insert(
-                wavelengths_nm_M[s][wl_idx].second, 
+                wavelengths_nm_M[m][wl_idx].second, 
                 Imf::Slice(compType, ptrS, xStride, yStride));
         }
     }
@@ -239,6 +234,17 @@ EXRSpectralImage::EXRSpectralImage(
             }
         }
     }
+
+    // Exposure compensation value
+    const Imf::StringAttribute * exposureCompensationAttr = exrHeader.findTypedAttribute<Imf::StringAttribute>(EXPOSURE_COMPENSATION_ATTR);
+
+    if (exposureCompensationAttr != nullptr) {
+        try {
+            _ev = std::stof(exposureCompensationAttr->value());
+        } catch (std::invalid_argument& e) {
+            throw INCORRECT_FORMED_FILE;
+        }
+    }
 }
 
 
@@ -278,7 +284,7 @@ const {
     for (size_t s = 0; s < nStokesComponents(); s++) {
         for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
             // Populate channel name
-            std::string channelName = getStokesChannelName(s, _wavelengths_nm[wl_idx]);
+            const std::string channelName = getStokesChannelName(s, _wavelengths_nm[wl_idx]);
             exrChannels.insert(channelName, Imf::Channel(compType));
 
             char* ptrS = (char*)(&_emissivePixelBuffers[s][wl_idx]);
@@ -291,7 +297,7 @@ const {
     for (size_t m = 0; m < nMuellerComponents(); m++) {
         for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
             // Populate channel name
-            std::string channelName = getMuellerChannelName(m, _wavelengths_nm[wl_idx]);
+            const std::string channelName = getMuellerChannelName(m, _wavelengths_nm[wl_idx]);
             exrChannels.insert(channelName, Imf::Channel(compType));
 
             char* ptrS = (char*)(&_reflectivePixelBuffers[m][wl_idx]);
@@ -322,6 +328,8 @@ const {
             }
         }
     }
+
+    exrHeader.insert(EXPOSURE_COMPENSATION_ATTR, Imf::StringAttribute(std::to_string(_ev)));
 
     // -----------------------------------------------------------------------
     // Write file
@@ -394,6 +402,8 @@ std::string EXRSpectralImage::getStokesChannelName(
     int stokesComponent,
     float wavelength_nm
 ) {
+    assert(stokesComponent < 4);
+
     std::stringstream b;
     std::string wavelengthStr = std::to_string(wavelength_nm);
     std::replace(wavelengthStr.begin(), wavelengthStr.end(), '.', ',');
@@ -402,19 +412,15 @@ std::string EXRSpectralImage::getStokesChannelName(
 
     const std::string channelName = b.str();
 
-    // "Pedantic" check
 #ifndef NDEBUG
     int polarisationComponentChecked;
     float wavelength_nmChecked;
 
-    if (!(channelType(channelName, polarisationComponentChecked, wavelength_nmChecked) & EMISSIVE)) {
-        throw INTERNAL_ERROR;
-    }
+    SpectrumType t = channelType(channelName, polarisationComponentChecked, wavelength_nmChecked);
 
-    if (polarisationComponentChecked != stokesComponent 
-     || wavelength_nmChecked != wavelength_nmChecked) {
-        throw INTERNAL_ERROR;
-    }
+    assert(isEmissive(t));
+    assert(polarisationComponentChecked == stokesComponent);
+    assert(wavelength_nmChecked == wavelength_nm);
 #endif
 
     return channelName;
@@ -425,6 +431,8 @@ std::string EXRSpectralImage::getMuellerChannelName(
     int polarisationComponent,
     float wavelength_nm
 ) {
+    assert(polarisationComponent < 4);
+
     std::stringstream b;
     std::string wavelengthStr = std::to_string(wavelength_nm);
     std::replace(wavelengthStr.begin(), wavelengthStr.end(), '.', ',');
@@ -435,19 +443,15 @@ std::string EXRSpectralImage::getMuellerChannelName(
 
     const std::string channelName = b.str();
 
-    // "Pedantic" check
 #ifndef NDEBUG
     int polarisationComponentChecked;
     float wavelength_nmChecked;
 
-    if (!(channelType(channelName, polarisationComponentChecked, wavelength_nmChecked) & REFLECTIVE)) {
-        throw INTERNAL_ERROR;
-    }
+    SpectrumType t = channelType(channelName, polarisationComponentChecked, wavelength_nmChecked);
 
-    if (polarisationComponentChecked != polarisationComponent 
-     || wavelength_nmChecked != wavelength_nmChecked) {
-        throw INTERNAL_ERROR;
-    }
+    assert(isReflective(t));
+    assert(polarisationComponentChecked == polarisationComponent);
+    assert(wavelength_nmChecked == wavelength_nm);
 #endif
 
     return channelName;

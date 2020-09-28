@@ -3,11 +3,11 @@
 namespace SEXR {
 
 enum SpectrumType {
-    UNDEFINED  = 0,
-    REFLECTIVE = 2,
-    EMISSIVE   = 4,
-    BISPECTRAL = 8,
-    POLARISED  = 16
+    UNDEFINED  = 0             , // 0b0000
+    REFLECTIVE = 2             , // 0b0001
+    EMISSIVE   = 4             , // 0b0010
+    BISPECTRAL = 8 | REFLECTIVE, // 0b0101
+    POLARISED  = 16              // 0b1000
 };
 
 
