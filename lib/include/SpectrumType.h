@@ -23,17 +23,22 @@ inline SpectrumType operator^(SpectrumType a, SpectrumType b)
 
 inline bool isReflective(SpectrumType s)
 {
-  return (s & REFLECTIVE) != 0;
+  return (s & REFLECTIVE) == REFLECTIVE;
 }
 
 inline bool isEmissive(SpectrumType s)
 {
-  return (s & EMISSIVE) != 0;
+  return (s & EMISSIVE) == EMISSIVE;
 }
 
 inline bool isPolarised(SpectrumType s)
 {
-  return (s & POLARISED) != 0;
+  return (s & POLARISED) == POLARISED;
+}
+
+inline bool isBispectral(SpectrumType s)
+{
+  return (s & BISPECTRAL) == BISPECTRAL;
 }
 
 } // namespace SEXR
