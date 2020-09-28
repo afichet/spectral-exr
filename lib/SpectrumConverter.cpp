@@ -236,7 +236,7 @@ void SpectrumConverter::spectrumToXYZ(
 
             for (size_t idx_illu = idx_illu_start; idx_illu < idx_illu_end; idx_illu++) {
                 const float curr_wl_i = idx_illu + _illuminantFirstWavelenght_nm;
-                const float illu_value = _illuminantSPD[curr_wl_i];
+                const float illu_value = _illuminantSPD[idx_illu];
 
                 assert(idx_illu < _illuminantSPD.size());
 
@@ -253,6 +253,7 @@ void SpectrumConverter::spectrumToXYZ(
                         wavelengths_nm[wl_idx_o + 1],
                         curr_wl_o);
                     
+                    // TODO.. not sure if this is correct
                     if (wl_idx_i == wl_idx_o) {
                         normalisation_factor += illu_value * _xyzCmfs[1][idx_cmf]; // Y
                     }
