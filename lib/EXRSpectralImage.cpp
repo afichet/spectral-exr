@@ -42,7 +42,7 @@ EXRSpectralImage::EXRSpectralImage(
     const Imf::ChannelList& exrChannels = exrHeader.channels();
 
     std::array<std::vector<std::pair<float, std::string>>, 4> wavelengths_nm_S;
-    std::array<std::vector<std::pair<float, std::string>>, 16> wavelengths_nm_M;
+    std::vector<std::pair<float, std::string>> wavelengths_nm_reflective;
 
     for (Imf::ChannelList::ConstIterator channel = exrChannels.begin(); 
         channel != exrChannels.end(); channel++) {
@@ -57,7 +57,7 @@ EXRSpectralImage::EXRSpectralImage(
             if (isEmissive(spectralChanel)) {
                 wavelengths_nm_S[polarisationComponent].push_back(std::make_pair(wavelength_nm, channel.name()));
             } else if (isReflective(spectralChanel)) {
-                wavelengths_nm_M[polarisationComponent].push_back(std::make_pair(wavelength_nm, channel.name()));
+                wavelengths_nm_reflective.push_back(std::make_pair(wavelength_nm, channel.name()));
             }
         }
     }
@@ -67,8 +67,8 @@ EXRSpectralImage::EXRSpectralImage(
         std::sort(wavelengths_nm_S[s].begin(), wavelengths_nm_S[s].end());
     }
 
-    for (size_t m = 0; m < nMuellerComponents(); m++) {
-        std::sort(wavelengths_nm_M[m].begin(), wavelengths_nm_M[m].end());
+    if (reflective()) {
+        std::sort(wavelengths_nm_reflective.begin(), wavelengths_nm_reflective.end());
     }
 
     // -------------------------------------------------------------------------
@@ -100,37 +100,17 @@ EXRSpectralImage::EXRSpectralImage(
         }
     }
 
-    if (reflective())
-    {
-        // Check we have the same wavelength for each Mueller component
-        // Wavelength vectors must be of the same size
-        const float base_size_reflective = wavelengths_nm_M[0].size();
-
-        for (size_t s = 1; s < nMuellerComponents(); s++) {
-            if (wavelengths_nm_M[s].size() != base_size_reflective) {
-                throw INCORRECT_FORMED_FILE;
-            }
-
-            // Wavelengths must correspond
-            for (size_t wl_idx = 0; wl_idx < base_size_reflective; wl_idx++) { 
-                if (wavelengths_nm_M[s][wl_idx].first != wavelengths_nm_M[0][wl_idx].first) {
-                    throw INCORRECT_FORMED_FILE;
-                }
-            }
-        }
-    }
-
     // If both reflective and emissive, we need to perform a last sanity check
     if (emissive() && reflective())
     {
         const size_t n_emissive_wavelengths = wavelengths_nm_S[0].size();
-        const size_t n_reflective_wavelengths = wavelengths_nm_M[0].size();
+        const size_t n_reflective_wavelengths = wavelengths_nm_reflective.size();
 
         if (n_emissive_wavelengths != n_reflective_wavelengths)
             throw INCORRECT_FORMED_FILE;
 
         for (size_t wl_idx = 0; wl_idx < n_emissive_wavelengths; wl_idx++) {
-            if (wavelengths_nm_S[0][wl_idx] != wavelengths_nm_M[0][wl_idx])
+            if (wavelengths_nm_S[0][wl_idx] != wavelengths_nm_reflective[wl_idx])
                 throw INCORRECT_FORMED_FILE;
         }
     }
@@ -147,9 +127,9 @@ EXRSpectralImage::EXRSpectralImage(
             _wavelengths_nm.push_back(wl_index.first);
         }
     } else {
-        _wavelengths_nm.reserve(wavelengths_nm_M[0].size());
+        _wavelengths_nm.reserve(wavelengths_nm_reflective.size());
 
-        for (const auto& wl_index: wavelengths_nm_M[0]) {
+        for (const auto& wl_index: wavelengths_nm_reflective) {
             _wavelengths_nm.push_back(wl_index.first);
         }
     }
@@ -159,8 +139,8 @@ EXRSpectralImage::EXRSpectralImage(
         _emissivePixelBuffers[s].resize(nSpectralBands() * width() * height());
     }
 
-    for (size_t m = 0; m < nMuellerComponents(); m++) {
-        _reflectivePixelBuffers[m].resize(nSpectralBands() * width() * height());
+    if (reflective()) {
+        _reflectivePixelBuffer.resize(nSpectralBands() * width() * height());
     }
 
     // -----------------------------------------------------------------------
@@ -182,11 +162,11 @@ EXRSpectralImage::EXRSpectralImage(
         }
     }
 
-    for (size_t m = 0; m < nMuellerComponents(); m++) {
+    if (reflective()) {
         for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
-            char* ptrS = (char*)(&_reflectivePixelBuffers[m][wl_idx]);
+            char* ptrS = (char*)(&_reflectivePixelBuffer[wl_idx]);
             exrFrameBuffer.insert(
-                wavelengths_nm_M[m][wl_idx].second, 
+                wavelengths_nm_reflective[wl_idx].second, 
                 Imf::Slice(compType, ptrS, xStride, yStride));
         }
     }
@@ -284,7 +264,7 @@ const {
     for (size_t s = 0; s < nStokesComponents(); s++) {
         for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
             // Populate channel name
-            const std::string channelName = getStokesChannelName(s, _wavelengths_nm[wl_idx]);
+            const std::string channelName = getEmissiveChannelName(s, _wavelengths_nm[wl_idx]);
             exrChannels.insert(channelName, Imf::Channel(compType));
 
             char* ptrS = (char*)(&_emissivePixelBuffers[s][wl_idx]);
@@ -294,15 +274,15 @@ const {
         }
     }
 
-    for (size_t m = 0; m < nMuellerComponents(); m++) {
+    if (reflective()) {
         for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
             // Populate channel name
-            const std::string channelName = getMuellerChannelName(m, _wavelengths_nm[wl_idx]);
+            const std::string channelName = getReflectiveChannelName(_wavelengths_nm[wl_idx]);
             exrChannels.insert(channelName, Imf::Channel(compType));
 
-            char* ptrS = (char*)(&_reflectivePixelBuffers[m][wl_idx]);
+            char* ptrS = (char*)(&_reflectivePixelBuffer[wl_idx]);
             exrFrameBuffer.insert(
-                channelName, 
+                channelName,
                 Imf::Slice(compType, ptrS, xStride, yStride));
         }
     }
@@ -322,7 +302,7 @@ const {
     if (channelSensitivities().size() > 0) {
         for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
             if (channelSensitivity(wl_idx).size() > 0) {
-                std::string channelName = getStokesChannelName(0, _wavelengths_nm[wl_idx]);
+                std::string channelName = getEmissiveChannelName(0, _wavelengths_nm[wl_idx]);
 
                 exrHeader.insert(channelName, channelSensitivity(wl_idx).getAttribute());
             }
@@ -347,7 +327,7 @@ SpectrumType EXRSpectralImage::channelType(
     float& wavelength_nm
 ) {
     const std::regex expr
-        ("^((S([0-3]))|(M([0-3])([0-3])))\\.(\\d*,?\\d*([Ee][+-]?\\d+)?)(Y|Z|E|P|T|G|M|k|h|da|d|c|m|u|n|p)?(m|Hz)$");
+        ("^((S([0-3]))|(T)\\.(\\d*,?\\d*([Ee][+-]?\\d+)?)(Y|Z|E|P|T|G|M|k|h|da|d|c|m|u|n|p)?(m|Hz)$");
     std::smatch matches;
 
     const bool matched = std::regex_search(channelName, matches, expr);
@@ -355,35 +335,36 @@ SpectrumType EXRSpectralImage::channelType(
     SpectrumType channelType = SpectrumType::UNDEFINED;
 
     if (matched) {
-        if (matches.size() != 11) {
+        if (matches.size() != 9) {
             // Something went wrong with the parsing. This shall not occur.
             throw INTERNAL_ERROR;
         }
 
-        if (matches[1].str()[0] == 'S') {
-            channelType = SpectrumType::EMISSIVE;
-            polarisationComponent = std::stoi(matches[3].str());
-        } else if (matches[1].str()[0] == 'M') {
-            channelType = SpectrumType::REFLECTIVE;
-            const size_t row = std::stoi(matches[5].str());
-            const size_t col = std::stoi(matches[6].str());
-            polarisationComponent = indexFromComponents(row, col);
-        } else {
-            throw INTERNAL_ERROR;
+        switch (matches[1].str()[0]) {
+            case 'S':
+                channelType = SpectrumType::EMISSIVE;
+                polarisationComponent = std::stoi(matches[3].str());
+                if (polarisationComponent > 0) {
+                    channelType = channelType | SpectrumType::POLARISED;
+                }
+                break;
+
+            case 'T':
+                channelType = SpectrumType::REFLECTIVE;
+                break;
+
+            default:
+                return SpectrumType::UNDEFINED;
         }
         
-        if (polarisationComponent > 0) {
-            channelType = channelType | SpectrumType::POLARISED;
-        }
-
         // Get value
-        std::string centralValueStr(matches[7].str());
+        std::string centralValueStr(matches[5].str());
         std::replace(centralValueStr.begin(), centralValueStr.end(), ',', '.');
         const float value = std::stof(centralValueStr);
         
         // Convert to nanometers
-        const std::string prefix = matches[9].str();
-        const std::string units = matches[10].str();
+        const std::string prefix = matches[7].str();
+        const std::string units = matches[8].str();
 
         try {
             wavelength_nm = Util::strToNanometers(value, prefix, units);
@@ -398,7 +379,7 @@ SpectrumType EXRSpectralImage::channelType(
 }
 
 
-std::string EXRSpectralImage::getStokesChannelName(
+std::string EXRSpectralImage::getEmissiveChannelName(
     int stokesComponent,
     float wavelength_nm
 ) {
@@ -427,19 +408,14 @@ std::string EXRSpectralImage::getStokesChannelName(
 }
 
 
-std::string EXRSpectralImage::getMuellerChannelName(
-    int polarisationComponent,
+std::string EXRSpectralImage::getReflectiveChannelName(
     float wavelength_nm
 ) {
-    assert(polarisationComponent < 4);
-
     std::stringstream b;
     std::string wavelengthStr = std::to_string(wavelength_nm);
     std::replace(wavelengthStr.begin(), wavelengthStr.end(), '.', ',');
- 
-    size_t row, col;
-    componentsFromIndex(polarisationComponent, row, col);
-    b << "M" << row << col << "." << wavelengthStr << "nm";
+
+    b << "T" << "." << wavelengthStr << "nm";
 
     const std::string channelName = b.str();
 
@@ -450,7 +426,6 @@ std::string EXRSpectralImage::getMuellerChannelName(
     SpectrumType t = channelType(channelName, polarisationComponentChecked, wavelength_nmChecked);
 
     assert(isReflective(t));
-    assert(polarisationComponentChecked == polarisationComponent);
     assert(wavelength_nmChecked == wavelength_nm);
 #endif
 

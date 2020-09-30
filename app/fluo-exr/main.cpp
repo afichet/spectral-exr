@@ -52,7 +52,7 @@ int main(/*int argc, char *argv[]*/) {
                     const size_t db_o = wl_o_idx + wl_o_idx_start;
                     assert(db_o < wo_size);
 
-                    fluoImage(x, y, wl_i_idx, wl_o_idx, 0, 0) = std::max(0.F, ptr[db_o][db_i]);
+                    fluoImage(x, y, wl_i_idx, wl_o_idx) = std::max(0.F, ptr[db_o][db_i]);
                 }
             }
         }

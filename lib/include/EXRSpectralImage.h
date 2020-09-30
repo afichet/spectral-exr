@@ -28,13 +28,12 @@ class EXRSpectralImage : public SpectralImage {
             float& wavelengths_nm
         );
 
-        static std::string getStokesChannelName(
+        static std::string getEmissiveChannelName(
             int stokesComponent,
             float wavelength_nm
         );
 
-        static std::string getMuellerChannelName(
-            int muellerComponent,
+        static std::string getReflectiveChannelName(
             float wavelength_nm
         );
 

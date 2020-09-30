@@ -76,13 +76,11 @@ class SpectralImage {
         // Access the reflective part
         virtual float& operator()(
             size_t x, size_t y, 
-            size_t wavelength_idx, 
-            size_t muellerRow, size_t muellerColumn);
+            size_t wavelength_idx);
 
         virtual const float& operator()(
             size_t x, size_t y, 
-            size_t wavelength_idx, 
-            size_t muellerRow, size_t muellerColumn) const;
+            size_t wavelength_idx) const;
 
         // Those are not direct memory access
         // They can be called whatever the image type is
@@ -94,8 +92,7 @@ class SpectralImage {
 
         virtual float getReflectiveValue(
             size_t x, size_t y, 
-            size_t wavelength_idx, 
-            size_t muellerRow = 0, size_t muellerColumn = 0) const;
+            size_t wavelength_idx) const;
 
         const float& wavelength_nm(size_t wl_idx) const;
 
@@ -104,7 +101,6 @@ class SpectralImage {
 
         size_t nSpectralBands()     const;
         size_t nStokesComponents()  const;
-        size_t nMuellerComponents() const;
         
         bool polarised()    const;
         bool emissive()     const;
@@ -112,29 +108,17 @@ class SpectralImage {
         bool bispectral()   const;
         SpectrumType type() const;
 
-        static void componentsFromIndex(
-            size_t index,
-            size_t& row,
-            size_t& col
-        );
-
-        static size_t indexFromComponents(
-            size_t row,
-            size_t col
-        );
-
     protected:
         size_t _width, _height;
         float _ev;
                 
-        // We can have up to 20 pixel buffers:
+        // We can have up to 6 pixel buffers:
         // - 1 for emissive unpolarised images (S0)
-        // - 1 for reflective unpolarised images (M00)
+        // - 1 for reflective unpolarised images (RE)
         // - 4 for emissive polarised images (S0, S1, S2, S3)
-        // - 16 for reflective polarised images (M00, M01, M02, M03, M10, ... M33)
         
-        std::array<std::vector<float>, 4> _reflectivePixelBuffers;
-        std::array<std::vector<float>, 16> _emissivePixelBuffers;
+        std::vector<float> _reflectivePixelBuffer;
+        std::array<std::vector<float>, 4> _emissivePixelBuffers;
 
         std::vector<float> _wavelengths_nm;
         SpectrumType _spectrumType;

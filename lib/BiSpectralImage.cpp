@@ -41,7 +41,7 @@ const {
                 const float& wavelength_o = _wavelengths_nm[wl_o_idx];
 
                 std::stringstream filepath;
-                filepath << path << "/" << "M00 - " << wavelength_i << "nm - " << wavelength_o << "nm.exr";
+                filepath << path << "/" << "T - " << wavelength_i << "nm - " << wavelength_o << "nm.exr";
 
                 Imf::Header exrHeader(width(), height());
                 Imf::ChannelList & exrChannels = exrHeader.channels();
@@ -70,7 +70,7 @@ const {
         for (size_t i = 0; i < width() * height(); i++) {
             sc.spectraToRGB(
                 _wavelengths_nm,
-                &_reflectivePixelBuffers[0][nSpectralBands() * i],
+                &_reflectivePixelBuffer[nSpectralBands() * i],
                 &_reradiation[reradiationSize() * i],
                 &_emissivePixelBuffers[0][nSpectralBands() * i],
                 rgb
@@ -89,7 +89,7 @@ const {
         for (size_t i = 0; i < width() * height(); i++) {
             sc.spectrumToRGB(
                 _wavelengths_nm,
-                &_reflectivePixelBuffers[0][nSpectralBands() * i],
+                &_reflectivePixelBuffer[nSpectralBands() * i],
                 &_reradiation[reradiationSize() * i],
                 rgb
                 );
@@ -136,16 +136,12 @@ void BiSpectralImage::wavelengthsIdxFromIdx(
 
 float BiSpectralImage::getReflectiveValue(
     size_t x, size_t y, 
-    size_t wavelengthFrom_idx, size_t wavelengthTo_idx,
-    size_t muellerRow,
-    size_t muellerColumn) 
+    size_t wavelengthFrom_idx, size_t wavelengthTo_idx) 
 const {
     assert(x < width());
     assert(y < height());
     assert(wavelengthFrom_idx < nSpectralBands());
     assert(wavelengthTo_idx < nSpectralBands());
-    assert(muellerRow < 4);
-    assert(muellerColumn < 4);
 
     if (!reflective() || wavelengthFrom_idx > wavelengthTo_idx) {
         return 0.F;
@@ -155,33 +151,26 @@ const {
         return 0.F;
     }
 
-    return this->operator()(x, y, wavelengthFrom_idx, wavelengthTo_idx, muellerRow, muellerColumn);
+    return this->operator()(x, y, wavelengthFrom_idx, wavelengthTo_idx);
 }
 
 
 float& BiSpectralImage::operator()(
     size_t x, size_t y, 
-    size_t wavelengthFrom_idx, size_t wavelengthTo_idx,
-    size_t muellerRow,
-    size_t muellerColumn)
+    size_t wavelengthFrom_idx, size_t wavelengthTo_idx)
 {
     assert(reflective());
     assert(x < width());
     assert(y < height());
     assert(wavelengthFrom_idx < nSpectralBands());
     assert(wavelengthTo_idx < nSpectralBands());
-    assert(muellerRow < 4);
-    assert(muellerColumn < 4);
-
     assert(wavelengthFrom_idx <= wavelengthTo_idx);
 
     if (wavelengthFrom_idx == wavelengthTo_idx) {
-        return SpectralImage::operator()(x, y, wavelengthFrom_idx, muellerRow, muellerColumn);
+        return SpectralImage::operator()(x, y, wavelengthFrom_idx);
     }
     
     assert(bispectral());
-    assert(muellerRow == 0);
-    assert(muellerColumn == 0);
     assert(_reradiation.size() == reradiationSize() * width() * height());
 
     size_t reradIdx = idxFromWavelengthIdx(wavelengthFrom_idx, wavelengthTo_idx);
@@ -192,25 +181,19 @@ float& BiSpectralImage::operator()(
 
 const float& BiSpectralImage::operator()(
     size_t x, size_t y, 
-    size_t wavelengthFrom_idx, size_t wavelengthTo_idx,
-    size_t muellerRow,
-    size_t muellerColumn) 
+    size_t wavelengthFrom_idx, size_t wavelengthTo_idx) 
 const {
     assert(reflective());
     assert(x < width());
     assert(y < height());
     assert(wavelengthFrom_idx < nSpectralBands());
     assert(wavelengthTo_idx < nSpectralBands());
-    assert(muellerRow < 4);
-    assert(muellerColumn < 4);
 
     if (wavelengthFrom_idx == wavelengthTo_idx) {
-        return SpectralImage::operator()(x, y, wavelengthFrom_idx, muellerRow, muellerColumn);
+        return SpectralImage::operator()(x, y, wavelengthFrom_idx);
     }
 
     assert(bispectral());
-    assert(muellerRow == 0);
-    assert(muellerColumn == 0);
     assert(_reradiation.size() == reradiationSize() * width() * height());
 
     size_t reradIdx = idxFromWavelengthIdx(wavelengthFrom_idx, wavelengthTo_idx);

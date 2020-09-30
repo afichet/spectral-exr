@@ -32,21 +32,18 @@ class BiSpectralImage: public SpectralImage {
 
         virtual float getReflectiveValue(
             size_t x, size_t y, 
-            size_t wavelengthFrom_idx, size_t wavelengthTo_idx,
-            size_t muellerRow,
-            size_t muellerColumn) const;
+            size_t wavelengthFrom_idx, size_t wavelengthTo_idx
+        ) const;
 
         virtual float& operator()(
             size_t x, size_t y, 
-            size_t wavelengthFrom_idx, size_t wavelengthTo_idx,
-            size_t muellerRow,
-            size_t muellerColumn);
+            size_t wavelengthFrom_idx, size_t wavelengthTo_idx
+        );
 
         virtual const float& operator()(
             size_t x, size_t y, 
-            size_t wavelengthFrom_idx, size_t wavelengthTo_idx,
-            size_t muellerRow,
-            size_t muellerColumn) const;
+            size_t wavelengthFrom_idx, size_t wavelengthTo_idx
+        ) const;
 
 
     protected:

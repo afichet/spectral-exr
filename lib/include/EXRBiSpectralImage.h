@@ -25,13 +25,12 @@ class EXRBiSpectralImage: public BiSpectralImage {
             float& reradiation_wavelength_nm
         );
 
-        static std::string getStokesChannelName(
+        static std::string getEmissiveChannelName(
             int stokesComponent,
             float wavelength_nm
         );
 
-        static std::string getMuellerChannelName(
-            int muellerComponent,
+        static std::string getReflectiveChannelName(
             float wavelength_nm
         );
 

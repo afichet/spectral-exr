@@ -27,21 +27,19 @@ int main(int argc, char* argv[])
         tabularOut << "S" << s << " ";
     }
 
-    for (size_t m = 0; m < image.nMuellerComponents(); m++) {
-        size_t row, col;
-        SpectralImage::componentsFromIndex(m, row, col);
-        tabularOut << "M" << row << col << " ";
+    if (image.reflective()) {
+        tabularOut << "T";
     }
 
     for (size_t wl_idx = 0; wl_idx < image.nSpectralBands(); wl_idx++) {
         tabularOut << image.wavelength_nm(wl_idx);
 
-        for (size_t p = 0; p < image.nStokesComponents(); p++) {
-            tabularOut << " " << image(x, y, wl_idx, p);
+        for (size_t s = 0; s < image.nStokesComponents(); s++) {
+            tabularOut << " " << image(x, y, wl_idx, s);
         }
 
-        for (size_t p = 0; p < image.nMuellerComponents(); p++) {
-            tabularOut << " " << image(x, y, wl_idx, p);
+        if (image.reflective()) {
+            tabularOut << " " << image(x, y, wl_idx);
         }
 
         tabularOut << "\n";
