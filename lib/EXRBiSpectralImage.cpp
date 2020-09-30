@@ -541,7 +541,7 @@ SpectrumType EXRBiSpectralImage::channelType(
         reradiation_wavelength_nm = Util::strToNanometers(
             value_o,
             matches[7].str(), // Unit multiplier
-            matches[8].str() // Units
+            matches[8].str()  // Units
             );
 
         return SpectrumType::BISPECTRAL;
