@@ -1,3 +1,34 @@
+/**
+ * Copyright (c) 2020 
+ *  Alban Fichet <alban.fichet@gmx.fr>, 
+ *  Romain Pacanowski <romain.pacanowski@inria.fr>, 
+ *  Alexander Wilkie <alexander.wilkie@cgg.mff.cuni.cz>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ *  * Neither the name of %ORGANIZATION% nor the names of its contributors may be
+ * used to endorse or promote products derived from this software without specific
+ * prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #include <EXRSpectralImage.h>
 #include "Util.h"
 
@@ -327,7 +358,7 @@ SpectrumType EXRSpectralImage::channelType(
     float& wavelength_nm
 ) {
     const std::regex expr
-        ("^((S([0-3]))|(T)\\.(\\d*,?\\d*([Ee][+-]?\\d+)?)(Y|Z|E|P|T|G|M|k|h|da|d|c|m|u|n|p)?(m|Hz)$");
+        ("^((S([0-3]))|T)\\.(\\d*,?\\d*([Ee][+-]?\\d+)?)(Y|Z|E|P|T|G|M|k|h|da|d|c|m|u|n|p)?(m|Hz)$");
     std::smatch matches;
 
     const bool matched = std::regex_search(channelName, matches, expr);
@@ -335,7 +366,7 @@ SpectrumType EXRSpectralImage::channelType(
     SpectrumType channelType = SpectrumType::UNDEFINED;
 
     if (matched) {
-        if (matches.size() != 9) {
+        if (matches.size() != 8) {
             // Something went wrong with the parsing. This shall not occur.
             throw INTERNAL_ERROR;
         }
@@ -358,13 +389,13 @@ SpectrumType EXRSpectralImage::channelType(
         }
         
         // Get value
-        std::string centralValueStr(matches[5].str());
+        std::string centralValueStr(matches[4].str());
         std::replace(centralValueStr.begin(), centralValueStr.end(), ',', '.');
         const float value = std::stof(centralValueStr);
         
         // Convert to nanometers
-        const std::string prefix = matches[7].str();
-        const std::string units = matches[8].str();
+        const std::string prefix = matches[6].str();
+        const std::string units = matches[7].str();
 
         try {
             wavelength_nm = Util::strToNanometers(value, prefix, units);

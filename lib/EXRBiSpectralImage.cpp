@@ -1,3 +1,34 @@
+/**
+ * Copyright (c) 2020 
+ *  Alban Fichet <alban.fichet@gmx.fr>, 
+ *  Romain Pacanowski <romain.pacanowski@inria.fr>, 
+ *  Alexander Wilkie <alexander.wilkie@cgg.mff.cuni.cz>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ *  * Neither the name of %ORGANIZATION% nor the names of its contributors may be
+ * used to endorse or promote products derived from this software without specific
+ * prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #include <EXRBiSpectralImage.h>
 #include "Util.h"
 
@@ -436,7 +467,7 @@ SpectrumType EXRBiSpectralImage::channelType(
 ) {
     const std::string exprRefl   = "T";
     const std::string exprStokes = "S([0-3])";
-    const std::string exprPola   = "((" + exprStokes + ")|(" + exprRefl + "))";
+    const std::string exprPola   = "((" + exprStokes + ")|" + exprRefl + ")";
     const std::string exprValue  = "(\\d*,?\\d*([Ee][+-]?\\d+)?)";
     const std::string exprUnits  = "(Y|Z|E|P|T|G|M|k|h|da|d|c|m|u|n|p)?(m|Hz)";
 
@@ -448,15 +479,14 @@ SpectrumType EXRBiSpectralImage::channelType(
     const bool matchedDiagonal = std::regex_search(channelName, matches, exprDiagonal);
 
     if (matchedDiagonal) {
-        if (matches.size() != 9) {
+        if (matches.size() != 8) {
             // Something went wrong with the parsing. This shall not occur.
             throw INTERNAL_ERROR;
         }
         
         SpectrumType type;
 
-        switch (matches[1].str()[0])
-        {
+        switch (matches[1].str()[0]) {
             case 'S':
                 type = SpectrumType::EMISSIVE;
                 polarisationComponent = std::stoi(matches[3].str());
@@ -474,14 +504,14 @@ SpectrumType EXRBiSpectralImage::channelType(
         }
 
         // Get value illumination
-        std::string centralValueStr(matches[5].str());
+        std::string centralValueStr(matches[4].str());
         std::replace(centralValueStr.begin(), centralValueStr.end(), ',', '.');
         const float value = std::stof(centralValueStr);
 
         wavelength_nm = Util::strToNanometers(
             value, // Comma separated floating point value
-            matches[7].str(), // Unit multiplier
-            matches[8].str()  // Units
+            matches[6].str(), // Unit multiplier
+            matches[7].str()  // Units
             );
 
         return type;
@@ -507,7 +537,7 @@ SpectrumType EXRBiSpectralImage::channelType(
             );
 
         // Get value reradiation
-        std::string centralValueStrO(matches[7].str());
+        std::string centralValueStrO(matches[5].str());
         std::replace(centralValueStrO.begin(), centralValueStrO.end(), ',', '.');
         const float value_o = std::stof(centralValueStrO);
 
