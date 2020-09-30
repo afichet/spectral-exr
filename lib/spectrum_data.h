@@ -1,8 +1,5 @@
 /**
- * Copyright (c) 2020 
- *  Alban Fichet <alban.fichet@gmx.fr>, 
- *  Romain Pacanowski <romain.pacanowski@inria.fr>, 
- *  Alexander Wilkie <alexander.wilkie@cgg.mff.cuni.cz>
+ * Copyright (c) 2020 Alban Fichet, Romain Pacanowski, Alexander Wilkie
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -28,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 #pragma once
 
 namespace SEXR {
