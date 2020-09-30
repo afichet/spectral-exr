@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
     const size_t x = std::stoi(argv[2]);
     const size_t y = std::stoi(argv[3]);
     const size_t wl_idx = (matrixMode) ? 0 : std::stoi(argv[4]);
-    std::ofstream tabularOut(argv[matrixMode ? 4 : 6]);
+    std::ofstream tabularOut(argv[matrixMode ? 4 : 5]);
 
     if (x >= image.width() || y >= image.height()) {
         std::cerr << "Coordinates out of bound." << std::endl;
