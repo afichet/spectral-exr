@@ -60,30 +60,32 @@ const {
     // Export the diagonal
     SpectralImage::exportChannels(path);
 
-    const size_t xStride = sizeof(float) * reradiationSize();
-    const size_t yStride = xStride * width();
+    if (bispectral()) {
+        const size_t xStride = sizeof(float) * reradiationSize();
+        const size_t yStride = xStride * width();
 
-    // Export the reradiation
-    for (size_t rr = 0; rr < reradiationSize(); rr++) {
-        for (size_t wl_i_idx = 0; wl_i_idx < nSpectralBands(); wl_i_idx++) {
-            const float& wavelength_i = _wavelengths_nm[wl_i_idx];
+        // Export the reradiation
+        for (size_t rr = 0; rr < reradiationSize(); rr++) {
+            for (size_t wl_i_idx = 0; wl_i_idx < nSpectralBands(); wl_i_idx++) {
+                const float& wavelength_i = _wavelengths_nm[wl_i_idx];
 
-            for (size_t wl_o_idx = wl_i_idx + 1; wl_o_idx < nSpectralBands(); wl_o_idx++) {
-                const float& wavelength_o = _wavelengths_nm[wl_o_idx];
+                for (size_t wl_o_idx = wl_i_idx + 1; wl_o_idx < nSpectralBands(); wl_o_idx++) {
+                    const float& wavelength_o = _wavelengths_nm[wl_o_idx];
 
-                std::stringstream filepath;
-                filepath << path << "/" << "T - " << wavelength_i << "nm - " << wavelength_o << "nm.exr";
+                    std::stringstream filepath;
+                    filepath << path << "/" << "T - " << wavelength_i << "nm - " << wavelength_o << "nm.exr";
 
-                Imf::Header exrHeader(width(), height());
-                Imf::ChannelList & exrChannels = exrHeader.channels();
-                Imf::FrameBuffer exrFrameBuffer;
+                    Imf::Header exrHeader(width(), height());
+                    Imf::ChannelList & exrChannels = exrHeader.channels();
+                    Imf::FrameBuffer exrFrameBuffer;
 
-                exrChannels.insert("Y", Imf::Channel(Imf::FLOAT));
-                exrFrameBuffer.insert("Y", Imf::Slice(Imf::FLOAT, (char*)(&_reradiation[rr]), xStride, yStride));
-                
-                Imf::OutputFile exrOut(filepath.str().c_str(), exrHeader);
-                exrOut.setFrameBuffer(exrFrameBuffer);
-                exrOut.writePixels(height());
+                    exrChannels.insert("Y", Imf::Channel(Imf::FLOAT));
+                    exrFrameBuffer.insert("Y", Imf::Slice(Imf::FLOAT, (char*)(&_reradiation[rr]), xStride, yStride));
+                    
+                    Imf::OutputFile exrOut(filepath.str().c_str(), exrHeader);
+                    exrOut.setFrameBuffer(exrFrameBuffer);
+                    exrOut.writePixels(height());
+                }
             }
         }
     }
@@ -92,50 +94,52 @@ const {
 
 void BiSpectralImage::getRGBImage(std::vector<float>& rgbImage) 
 const {
-    rgbImage.resize(3 * width() * height());
-    SpectrumConverter sc(emissive());
-    
-    std::array<float, 3> rgb;
-
-    if (emissive() && reflective()) {
-        for (size_t i = 0; i < width() * height(); i++) {
-            sc.spectraToRGB(
-                _wavelengths_nm,
-                &_reflectivePixelBuffer[nSpectralBands() * i],
-                &_reradiation[reradiationSize() * i],
-                &_emissivePixelBuffers[0][nSpectralBands() * i],
-                rgb
-                );
-
-            memcpy(&rgbImage[3 * i], &rgb[0], 3 * sizeof(float));
-        }
-
-        // Exposure compensation
-        for (size_t i = 0; i < width() * height(); i++) {
-            for (size_t c = 0; c < 3; c++) {
-                rgbImage[3 * i + c] *= std::pow(2.F, _ev);
-            }
-        }
-    } else if (reflective()) {
-        for (size_t i = 0; i < width() * height(); i++) {
-            sc.spectrumToRGB(
-                _wavelengths_nm,
-                &_reflectivePixelBuffer[nSpectralBands() * i],
-                &_reradiation[reradiationSize() * i],
-                rgb
-                );
-
-            memcpy(&rgbImage[3 * i], &rgb[0], 3 * sizeof(float));
-        }
-
-        // Exposure compensation
-        for (size_t i = 0; i < width() * height(); i++) {
-            for (size_t c = 0; c < 3; c++) {
-                rgbImage[3 * i + c] *= std::pow(2.F, _ev);
-            }
-        }
-    } else {
+    if (!bispectral()) {
         SpectralImage::getRGBImage(rgbImage);
+    } else {
+        rgbImage.resize(3 * width() * height());
+        SpectrumConverter sc(emissive());
+        
+        std::array<float, 3> rgb;
+
+        if (emissive() && reflective()) {
+            for (size_t i = 0; i < width() * height(); i++) {
+                sc.spectraToRGB(
+                    _wavelengths_nm,
+                    &_reflectivePixelBuffer[nSpectralBands() * i],
+                    &_reradiation[reradiationSize() * i],
+                    &_emissivePixelBuffers[0][nSpectralBands() * i],
+                    rgb
+                    );
+
+                memcpy(&rgbImage[3 * i], &rgb[0], 3 * sizeof(float));
+            }
+
+            // Exposure compensation
+            for (size_t i = 0; i < width() * height(); i++) {
+                for (size_t c = 0; c < 3; c++) {
+                    rgbImage[3 * i + c] *= std::pow(2.F, _ev);
+                }
+            }
+        } else if (reflective()) {
+            for (size_t i = 0; i < width() * height(); i++) {
+                sc.spectrumToRGB(
+                    _wavelengths_nm,
+                    &_reflectivePixelBuffer[nSpectralBands() * i],
+                    &_reradiation[reradiationSize() * i],
+                    rgb
+                    );
+
+                memcpy(&rgbImage[3 * i], &rgb[0], 3 * sizeof(float));
+            }
+
+            // Exposure compensation
+            for (size_t i = 0; i < width() * height(); i++) {
+                for (size_t c = 0; c < 3; c++) {
+                    rgbImage[3 * i + c] *= std::pow(2.F, _ev);
+                }
+            }
+        }
     }
 }
 
