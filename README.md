@@ -11,6 +11,7 @@ library installed on your system and CMake.
 
 ```bash
 mkdir build
+cd build
 cmake ..
 make
 ```
