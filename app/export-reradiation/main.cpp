@@ -33,59 +33,61 @@
 
 using namespace SEXR;
 
-int main(int argc, char* argv[]) 
+int main(int argc, char *argv[])
 {
-    if (argc < 5) {
-        std::cout << "Usage:" << std::endl
-                  << "------" << std::endl
-                  << argv[0] << " <bispectral_exr> <x> <y> [<wavelength_i>] <output_file>" << std::endl
-                  << std::endl;
-
-        return 0;
-    }
-
-    const bool matrixMode = argc == 5;
-
-    const EXRBiSpectralImage image(argv[1]);
-    const size_t x = std::stoi(argv[2]);
-    const size_t y = std::stoi(argv[3]);
-    const size_t wl_idx = (matrixMode) ? 0 : std::stoi(argv[4]);
-    std::ofstream tabularOut(argv[matrixMode ? 4 : 5]);
-
-    if (x >= image.width() || y >= image.height()) {
-        std::cerr << "Coordinates out of bound." << std::endl;
-        return 0;
-    }
-
-    if (matrixMode) {
-        tabularOut << "# ";
-        for (size_t wl_i_idx = 0; wl_i_idx < image.nSpectralBands(); wl_i_idx++) {
-            tabularOut << image.wavelength_nm(wl_i_idx) << " ";
-        }
-
-        tabularOut << "\n";
-
-        for (size_t wl_o_idx = 0; wl_o_idx < image.nSpectralBands(); wl_o_idx++) {
-            for (size_t wl_i_idx = 0; wl_i_idx < image.nSpectralBands(); wl_i_idx++) {
-                tabularOut << image.getReflectiveValue(x, y, wl_i_idx, wl_o_idx) << " ";
-            }
-            
-            tabularOut << "\n";
-        }
-    } else {
-        if (wl_idx >= image.nSpectralBands()) {
-            std::cerr << "Wavelength index out of bound." << std::endl;
-            return 0;
-        }
-
-        tabularOut << "# Remission for wl_i=" << image.wavelength_nm(wl_idx) << "nm\n";
-
-        for (size_t wl_o_idx = 0; wl_o_idx < image.nSpectralBands(); wl_o_idx++) {
-            tabularOut 
-                << image.wavelength_nm(wl_o_idx) << " "
-                << image.getReflectiveValue(x, y, wl_idx, wl_o_idx) << "\n";
-        }
-    }
+  if (argc < 5) {
+    std::cout << "Usage:" << std::endl
+              << "------" << std::endl
+              << argv[0]
+              << " <bispectral_exr> <x> <y> [<wavelength_i>] <output_file>"
+              << std::endl
+              << std::endl;
 
     return 0;
+  }
+
+  const bool matrixMode = argc == 5;
+
+  const EXRBiSpectralImage image(argv[1]);
+  const size_t             x      = std::stoi(argv[2]);
+  const size_t             y      = std::stoi(argv[3]);
+  const size_t             wl_idx = (matrixMode) ? 0 : std::stoi(argv[4]);
+  std::ofstream            tabularOut(argv[matrixMode ? 4 : 5]);
+
+  if (x >= image.width() || y >= image.height()) {
+    std::cerr << "Coordinates out of bound." << std::endl;
+    return 0;
+  }
+
+  if (matrixMode) {
+    tabularOut << "# ";
+    for (size_t wl_i_idx = 0; wl_i_idx < image.nSpectralBands(); wl_i_idx++) {
+      tabularOut << image.wavelength_nm(wl_i_idx) << " ";
+    }
+
+    tabularOut << "\n";
+
+    for (size_t wl_i_idx = 0; wl_i_idx < image.nSpectralBands(); wl_i_idx++) {
+      for (size_t wl_o_idx = 0; wl_o_idx < image.nSpectralBands(); wl_o_idx++) {
+        tabularOut << image.getReflectiveValue(x, y, wl_i_idx, wl_o_idx) << " ";
+      }
+
+      tabularOut << "\n";
+    }
+  } else {
+    if (wl_idx >= image.nSpectralBands()) {
+      std::cerr << "Wavelength index out of bound." << std::endl;
+      return 0;
+    }
+
+    tabularOut << "# Remission for wl_i=" << image.wavelength_nm(wl_idx)
+               << "nm\n";
+
+    for (size_t wl_o_idx = 0; wl_o_idx < image.nSpectralBands(); wl_o_idx++) {
+      tabularOut << image.wavelength_nm(wl_o_idx) << " "
+                 << image.getReflectiveValue(x, y, wl_idx, wl_o_idx) << "\n";
+    }
+  }
+
+  return 0;
 }

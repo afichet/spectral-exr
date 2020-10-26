@@ -35,125 +35,117 @@
 #include <SpectrumAttribute.h>
 #include <SpectrumType.h>
 
-namespace SEXR {
+namespace SEXR
+{
+  class SpectralImage
+  {
+  public:
+    enum Errors
+    {
+      UNSUPORTED_FILE,
+      INTERNAL_ERROR,
+      READ_ERROR,
+      WRITE_ERROR,
+      INCORRECT_FORMED_FILE
+    };
 
-class SpectralImage {
-    public:
-        enum Errors {
-            UNSUPORTED_FILE,
-            INTERNAL_ERROR,
-            READ_ERROR,
-            WRITE_ERROR,
-            INCORRECT_FORMED_FILE
-        };
+    SpectralImage(
+      size_t                    width          = 0,
+      size_t                    height         = 0,
+      const std::vector<float> &wavelengths_nm = std::vector<float>(),
+      SpectrumType              type           = EMISSIVE);
 
-        SpectralImage(
-            size_t width = 0, size_t height = 0,
-            const std::vector<float>& wavelengths_nm = std::vector<float>(),
-            SpectrumType type = EMISSIVE
-        );
+    virtual void save(const std::string &filename) const = 0;
 
-        virtual void save(const std::string& filename) const = 0;
+    virtual void exportChannels(const std::string &path) const;
+    virtual void getRGBImage(std::vector<float> &rgbImage) const;
 
-        virtual void exportChannels(const std::string& path) const;
-        virtual void getRGBImage(std::vector<float>& rgbImage) const;
+    void setCameraResponse(
+      const std::vector<float> &wavelengths_nm,
+      const std::vector<float> &values);
 
-        void setCameraResponse(
-            const std::vector<float>& wavelengths_nm,
-            const std::vector<float>& values
-        );
-
-        const SpectrumAttribute& cameraResponse()   const;
-
-
-        void setLensTransmission(
-            const std::vector<float>& wavelengths_nm,
-            const std::vector<float>& values
-        );
+    const SpectrumAttribute &cameraResponse() const;
 
 
-        const SpectrumAttribute& lensTransmission() const;
+    void setLensTransmission(
+      const std::vector<float> &wavelengths_nm,
+      const std::vector<float> &values);
 
-        void setChannelSensitivity(
-            size_t wl_idx,
-            const std::vector<float>& wavelengths_nm,
-            const std::vector<float>& values
-        );
 
-        
-        const std::vector<SpectrumAttribute>& channelSensitivities() const;
+    const SpectrumAttribute &lensTransmission() const;
 
-        const SpectrumAttribute& channelSensitivity(size_t wl_idx) const;
+    void setChannelSensitivity(
+      size_t                    wl_idx,
+      const std::vector<float> &wavelengths_nm,
+      const std::vector<float> &values);
 
-        
-        void setExposureCompensationValue(float ev);
 
-        const float& exposureCompensationValue() const;
+    const std::vector<SpectrumAttribute> &channelSensitivities() const;
 
-        // Access the emissive part
-        virtual float& operator()(
-            size_t x, size_t y, 
-            size_t wavelength_idx, 
-            size_t stokesComponent);
+    const SpectrumAttribute &channelSensitivity(size_t wl_idx) const;
 
-        virtual const float& operator()(
-            size_t x, size_t y, 
-            size_t wavelength_idx, 
-            size_t stokesComponent) const;
 
-        // Access the reflective part
-        virtual float& operator()(
-            size_t x, size_t y, 
-            size_t wavelength_idx);
+    void setExposureCompensationValue(float ev);
 
-        virtual const float& operator()(
-            size_t x, size_t y, 
-            size_t wavelength_idx) const;
+    const float &exposureCompensationValue() const;
 
-        // Those are not direct memory access
-        // They can be called whatever the image type is
+    // Access the emissive part
+    virtual float &operator()(
+      size_t x, size_t y, size_t wavelength_idx, size_t stokesComponent);
 
-        virtual float getEmissiveValue(
-            size_t x, size_t y, 
-            size_t wavelength_idx, 
-            size_t stokesComponent = 0) const;
+    virtual const float &operator()(
+      size_t x, size_t y, size_t wavelength_idx, size_t stokesComponent) const;
 
-        virtual float getReflectiveValue(
-            size_t x, size_t y, 
-            size_t wavelength_idx) const;
+    // Access the reflective part
+    virtual float &operator()(size_t x, size_t y, size_t wavelength_idx);
 
-        const float& wavelength_nm(size_t wl_idx) const;
+    virtual const float &
+    operator()(size_t x, size_t y, size_t wavelength_idx) const;
 
-        size_t width()  const;
-        size_t height() const;
+    // Those are not direct memory access
+    // They can be called whatever the image type is
 
-        size_t nSpectralBands()     const;
-        size_t nStokesComponents()  const;
-        
-        bool polarised()    const;
-        bool emissive()     const;
-        bool reflective()   const;
-        bool bispectral()   const;
-        SpectrumType type() const;
+    virtual float getEmissiveValue(
+      size_t x,
+      size_t y,
+      size_t wavelength_idx,
+      size_t stokesComponent = 0) const;
 
-    protected:
-        size_t _width, _height;
-        float _ev;
-                
-        // We can have up to 6 pixel buffers:
-        // - 1 for emissive unpolarised images (S0)
-        // - 1 for reflective unpolarised images (RE)
-        // - 4 for emissive polarised images (S0, S1, S2, S3)
-        
-        std::vector<float> _reflectivePixelBuffer;
-        std::array<std::vector<float>, 4> _emissivePixelBuffers;
+    virtual float
+    getReflectiveValue(size_t x, size_t y, size_t wavelength_idx) const;
 
-        std::vector<float> _wavelengths_nm;
-        SpectrumType _spectrumType;
+    const float &wavelength_nm(size_t wl_idx) const;
 
-        SpectrumAttribute _lensTransmissionSpectra;
-        SpectrumAttribute _cameraReponse;
-        std::vector<SpectrumAttribute> _channelSensitivities;
-};
+    size_t width() const;
+    size_t height() const;
 
-} // namespace SEXR
+    size_t nSpectralBands() const;
+    size_t nStokesComponents() const;
+
+    bool         polarised() const;
+    bool         emissive() const;
+    bool         reflective() const;
+    bool         bispectral() const;
+    SpectrumType type() const;
+
+  protected:
+    size_t _width, _height;
+    float  _ev;
+
+    // We can have up to 6 pixel buffers:
+    // - 1 for emissive unpolarised images (S0)
+    // - 1 for reflective unpolarised images (RE)
+    // - 4 for emissive polarised images (S0, S1, S2, S3)
+
+    std::vector<float>                _reflectivePixelBuffer;
+    std::array<std::vector<float>, 4> _emissivePixelBuffers;
+
+    std::vector<float> _wavelengths_nm;
+    SpectrumType       _spectrumType;
+
+    SpectrumAttribute              _lensTransmissionSpectra;
+    SpectrumAttribute              _cameraReponse;
+    std::vector<SpectrumAttribute> _channelSensitivities;
+  };
+
+}   // namespace SEXR
