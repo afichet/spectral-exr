@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
   std::ofstream            tabularOut(argv[matrixMode ? 4 : 5]);
 
   if (x >= image.width() || y >= image.height()) {
-    std::cerr << "Coordinates out of bound." << std::endl;
+    std::cerr << "Coordinates out of bounds." << std::endl;
     return 0;
   }
 
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
     }
   } else {
     if (wl_idx >= image.nSpectralBands()) {
-      std::cerr << "Wavelength index out of bound." << std::endl;
+      std::cerr << "Wavelength index out of bounds." << std::endl;
       return 0;
     }
 
