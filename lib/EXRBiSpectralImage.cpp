@@ -88,8 +88,8 @@ namespace SEXR
       if (currChannelType != SpectrumType::UNDEFINED) {
         _spectrumType = _spectrumType | currChannelType;
 
-        if (isReflective(currChannelType)) {
-          if (!isBispectral(currChannelType)) {
+        if (isReflectiveSpectrum(currChannelType)) {
+          if (!isBispectralSpectrum(currChannelType)) {
             wavelengths_nm_diagonal.push_back(
               std::make_pair(in_wavelength_nm, channel.name()));
           } else {
@@ -97,7 +97,7 @@ namespace SEXR
               std::make_pair(in_wavelength_nm, out_wavelength_nm),
               channel.name()));
           }
-        } else if (isEmissive(currChannelType)) {
+        } else if (isEmissiveSpectrum(currChannelType)) {
           assert(polarisationComponent < 4);
           wavelengths_nm_S[polarisationComponent].push_back(
             std::make_pair(in_wavelength_nm, channel.name()));
@@ -139,7 +139,7 @@ namespace SEXR
       throw INCORRECT_FORMED_FILE;
     }
 
-    if (emissive()) {
+    if (isEmissive()) {
       // Check we have the same wavelength for each Stokes component
       // Wavelength vectors must be of the same size
       const float base_size_emissive = wavelengths_nm_S[0].size();
@@ -161,7 +161,7 @@ namespace SEXR
     }
 
     // If both reflective and emissive, we need to perform a last sanity check
-    if (emissive() && reflective()) {
+    if (isEmissive() && isReflective()) {
       const size_t n_emissive_wavelengths   = wavelengths_nm_S[0].size();
       const size_t n_reflective_wavelengths = wavelengths_nm_diagonal.size();
 
@@ -175,7 +175,7 @@ namespace SEXR
     }
 
     // Now, we can populate the local wavelength vector
-    if (emissive()) {
+    if (isEmissive()) {
       _wavelengths_nm.reserve(wavelengths_nm_S[0].size());
 
       for (const auto &wl_index : wavelengths_nm_S[0]) {
@@ -191,7 +191,7 @@ namespace SEXR
 
     // Check every single reradiation have all upper wavelength values
     // Note: this shall not be mandatory in the format but, we only support that for now
-    if (bispectral()) {
+    if (isBispectral()) {
       if (reradiation_wavelengths_nm.size() != reradiationSize()) {
         std::cerr << "Reradiation is incomplete" << std::endl;
       }
@@ -237,10 +237,10 @@ namespace SEXR
       _emissivePixelBuffers[s].resize(nSpectralBands() * width() * height());
     }
 
-    if (reflective()) {
+    if (isReflective()) {
       _reflectivePixelBuffer.resize(nSpectralBands() * width() * height());
 
-      if (bispectral()) {
+      if (isBispectral()) {
         _reradiation.resize(reradiationSize() * width() * height());
       }
     }
@@ -266,7 +266,7 @@ namespace SEXR
       }
     }
 
-    if (reflective()) {
+    if (isReflective()) {
       for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
         char *ptrS = (char *)(&_reflectivePixelBuffer[wl_idx]);
         exrFrameBuffer.insert(
@@ -274,7 +274,7 @@ namespace SEXR
           Imf::Slice(compType, ptrS, xStride, yStride));
       }
 
-      if (bispectral()) {
+      if (isBispectral()) {
         // Set the reradiation part fo reading
         const size_t xStrideReradiation = sizeof(float) * reradiationSize();
         const size_t yStrideReradiation = xStrideReradiation * width();
@@ -404,7 +404,7 @@ namespace SEXR
       }
     }
 
-    if (reflective()) {
+    if (isReflective()) {
       for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
         // Populate channel name
         const std::string channelName
@@ -417,7 +417,7 @@ namespace SEXR
           Imf::Slice(compType, ptrS, xStride, yStride));
       }
 
-      if (bispectral()) {
+      if (isBispectral()) {
         // Write the reradiation
         const size_t xStrideReradiation = sizeof(float) * reradiationSize();
         const size_t yStrideReradiation = xStrideReradiation * _width;
@@ -605,7 +605,7 @@ namespace SEXR
       wavelength_nmChecked,
       wavelength_nmCheckedOut);
 
-    assert(isEmissive(t));
+    assert(isEmissiveSpectrum(t));
     assert(stokesComponentChecked == stokesComponent);
     assert(wavelength_nmChecked == wavelength_nm);
 #endif
@@ -635,7 +635,7 @@ namespace SEXR
       wavelength_nmChecked,
       wavelength_nmCheckedOut);
 
-    assert(isReflective(t));
+    assert(isReflectiveSpectrum(t));
     assert(wavelength_nmChecked == wavelength_nm);
 #endif
 
@@ -670,7 +670,7 @@ namespace SEXR
       wavelength_nmChecked,
       reradiation_wavelength_nmChecked);
 
-    assert(isBispectral(t));
+    assert(isBispectralSpectrum(t));
     assert(wavelength_nmChecked == wavelength_nm);
     assert(reradiation_wavelength_nmChecked == reradiation_wavelength_nm);
 #endif

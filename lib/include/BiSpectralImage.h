@@ -129,10 +129,10 @@ namespace SEXR
      * @param wavelengthFrom_idx index of the radiating wavelength.
      * @param wavelengthTo_idx index of the reemitting wavelength.
      */
-    virtual float &operator()(
+    virtual float &reflective(
       size_t x, size_t y, size_t wavelengthFrom_idx, size_t wavelengthTo_idx);
 
-    virtual const float &operator()(
+    virtual const float &reflective(
       size_t x,
       size_t y,
       size_t wavelengthFrom_idx,

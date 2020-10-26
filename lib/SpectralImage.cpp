@@ -56,7 +56,7 @@ namespace SEXR
       _emissivePixelBuffers[s].resize(buffSize);
     }
 
-    if (reflective()) {
+    if (isReflective()) {
       _reflectivePixelBuffer.resize(buffSize);
     }
 
@@ -103,7 +103,7 @@ namespace SEXR
     }
 
     // Export the reflective part
-    if (reflective()) {
+    if (isReflective()) {
       for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
         const float &     wavelength = _wavelengths_nm[wl_idx];
         std::stringstream filepath;
@@ -118,11 +118,11 @@ namespace SEXR
   void SpectralImage::getRGBImage(std::vector<float> &rgbImage) const
   {
     rgbImage.resize(3 * width() * height());
-    SpectrumConverter sc(emissive());
+    SpectrumConverter sc(isEmissive());
 
     std::array<float, 3> rgb;
 
-    if (emissive() && reflective()) {
+    if (isEmissive() && isReflective()) {
       for (size_t i = 0; i < width() * height(); i++) {
         sc.spectraToRGB(
           _wavelengths_nm,
@@ -132,7 +132,7 @@ namespace SEXR
 
         memcpy(&rgbImage[3 * i], &rgb[0], 3 * sizeof(float));
       }
-    } else if (emissive()) {
+    } else if (isEmissive()) {
       for (size_t i = 0; i < width() * height(); i++) {
         sc.spectrumToRGB(
           _wavelengths_nm,
@@ -141,7 +141,7 @@ namespace SEXR
 
         memcpy(&rgbImage[3 * i], &rgb[0], 3 * sizeof(float));
       }
-    } else if (reflective()) {
+    } else if (isReflective()) {
       for (size_t i = 0; i < width() * height(); i++) {
         sc.spectrumToRGB(
           _wavelengths_nm,
@@ -227,13 +227,13 @@ namespace SEXR
 
   // Access the emissive part
 
-  float &SpectralImage::operator()(
+  float &SpectralImage::emissive(
     size_t x, size_t y, size_t wavelength_idx, size_t stokesComponent)
   {
     assert(x < width());
     assert(y < height());
     assert(wavelength_idx < nSpectralBands());
-    assert(emissive());
+    assert(isEmissive());
     assert(stokesComponent < nStokesComponents());
 
     return _emissivePixelBuffers[stokesComponent]
@@ -242,13 +242,13 @@ namespace SEXR
   }
 
 
-  const float &SpectralImage::operator()(
+  const float &SpectralImage::emissive(
     size_t x, size_t y, size_t wavelength_idx, size_t stokesComponent) const
   {
     assert(x < width());
     assert(y < height());
     assert(wavelength_idx < nSpectralBands());
-    assert(emissive());
+    assert(isEmissive());
     assert(stokesComponent < nStokesComponents());
 
     return _emissivePixelBuffers[stokesComponent]
@@ -258,12 +258,12 @@ namespace SEXR
 
   // Access the reflective part
 
-  float &SpectralImage::operator()(size_t x, size_t y, size_t wavelength_idx)
+  float &SpectralImage::reflective(size_t x, size_t y, size_t wavelength_idx)
   {
     assert(x < width());
     assert(y < height());
     assert(wavelength_idx < nSpectralBands());
-    assert(reflective());
+    assert(isReflective());
 
     return _reflectivePixelBuffer
       [nSpectralBands() * (y * width() + x) + wavelength_idx];
@@ -271,12 +271,12 @@ namespace SEXR
 
 
   const float &
-  SpectralImage::operator()(size_t x, size_t y, size_t wavelength_idx) const
+  SpectralImage::reflective(size_t x, size_t y, size_t wavelength_idx) const
   {
     assert(x < width());
     assert(y < height());
     assert(wavelength_idx < nSpectralBands());
-    assert(reflective());
+    assert(isReflective());
 
     return _reflectivePixelBuffer
       [nSpectralBands() * (y * width() + x) + wavelength_idx];
@@ -286,8 +286,8 @@ namespace SEXR
   float SpectralImage::getEmissiveValue(
     size_t x, size_t y, size_t wavelength_idx, size_t stokesComponent) const
   {
-    if (emissive()) {
-      return (*this)(x, y, wavelength_idx, stokesComponent);
+    if (isEmissive()) {
+      return emissive(x, y, wavelength_idx, stokesComponent);
     }
 
     return 0.F;
@@ -297,8 +297,8 @@ namespace SEXR
   float SpectralImage::getReflectiveValue(
     size_t x, size_t y, size_t wavelength_idx) const
   {
-    if (reflective()) {
-      return (*this)(x, y, wavelength_idx);
+    if (isReflective()) {
+      return reflective(x, y, wavelength_idx);
     }
 
     return 0.F;
@@ -323,8 +323,8 @@ namespace SEXR
 
   size_t SpectralImage::nStokesComponents() const
   {
-    if (emissive()) {
-      if (polarised()) {
+    if (isEmissive()) {
+      if (isPolarised()) {
         return 4;
       } else {
         return 1;
@@ -335,10 +335,30 @@ namespace SEXR
   }
 
 
-  bool SpectralImage::polarised() const { return isPolarised(_spectrumType); }
-  bool SpectralImage::emissive() const { return isEmissive(_spectrumType); }
-  bool SpectralImage::reflective() const { return isReflective(_spectrumType); }
-  bool SpectralImage::bispectral() const { return isBispectral(_spectrumType); }
+  bool SpectralImage::isPolarised() const
+  {
+    return isPolarisedSpectrum(_spectrumType);
+  }
+
+
+  bool SpectralImage::isEmissive() const
+  {
+    return isEmissiveSpectrum(_spectrumType);
+  }
+
+
+  bool SpectralImage::isReflective() const
+  {
+    return isReflectiveSpectrum(_spectrumType);
+  }
+
+
+  bool SpectralImage::isBispectral() const
+  {
+    return isBispectralSpectrum(_spectrumType);
+  }
+
+
   SpectrumType SpectralImage::type() const { return _spectrumType; }
 
 

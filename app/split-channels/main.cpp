@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 
   additionalInfo << "\tPolarised: ";
 
-  if (spectralImage.polarised()) {
+  if (spectralImage.isPolarised()) {
     additionalInfo << "YES" << std::endl;
   } else {
     additionalInfo << "NO" << std::endl;

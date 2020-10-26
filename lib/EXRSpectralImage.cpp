@@ -82,10 +82,10 @@ namespace SEXR
       if (spectralChanel != SpectrumType::UNDEFINED) {
         _spectrumType = _spectrumType | spectralChanel;
 
-        if (isEmissive(spectralChanel)) {
+        if (isEmissiveSpectrum(spectralChanel)) {
           wavelengths_nm_S[polarisationComponent].push_back(
             std::make_pair(wavelength_nm, channel.name()));
-        } else if (isReflective(spectralChanel)) {
+        } else if (isReflectiveSpectrum(spectralChanel)) {
           wavelengths_nm_reflective.push_back(
             std::make_pair(wavelength_nm, channel.name()));
         }
@@ -97,7 +97,7 @@ namespace SEXR
       std::sort(wavelengths_nm_S[s].begin(), wavelengths_nm_S[s].end());
     }
 
-    if (reflective()) {
+    if (isReflective()) {
       std::sort(
         wavelengths_nm_reflective.begin(),
         wavelengths_nm_reflective.end());
@@ -112,7 +112,7 @@ namespace SEXR
       throw INCORRECT_FORMED_FILE;
     }
 
-    if (emissive()) {
+    if (isEmissive()) {
       // Check we have the same wavelength for each Stokes component
       // Wavelength vectors must be of the same size
       const float base_size_emissive = wavelengths_nm_S[0].size();
@@ -134,7 +134,7 @@ namespace SEXR
     }
 
     // If both reflective and emissive, we need to perform a last sanity check
-    if (emissive() && reflective()) {
+    if (isEmissive() && isReflective()) {
       const size_t n_emissive_wavelengths   = wavelengths_nm_S[0].size();
       const size_t n_reflective_wavelengths = wavelengths_nm_reflective.size();
 
@@ -152,7 +152,7 @@ namespace SEXR
     // -----------------------------------------------------------------------
 
     // Now, we can populate the local wavelength vector
-    if (emissive()) {
+    if (isEmissive()) {
       _wavelengths_nm.reserve(wavelengths_nm_S[0].size());
 
       for (const auto &wl_index : wavelengths_nm_S[0]) {
@@ -171,7 +171,7 @@ namespace SEXR
       _emissivePixelBuffers[s].resize(nSpectralBands() * width() * height());
     }
 
-    if (reflective()) {
+    if (isReflective()) {
       _reflectivePixelBuffer.resize(nSpectralBands() * width() * height());
     }
 
@@ -194,7 +194,7 @@ namespace SEXR
       }
     }
 
-    if (reflective()) {
+    if (isReflective()) {
       for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
         char *ptrS = (char *)(&_reflectivePixelBuffer[wl_idx]);
         exrFrameBuffer.insert(
@@ -315,7 +315,7 @@ namespace SEXR
       }
     }
 
-    if (reflective()) {
+    if (isReflective()) {
       for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
         // Populate channel name
         const std::string channelName
@@ -451,7 +451,7 @@ namespace SEXR
       polarisationComponentChecked,
       wavelength_nmChecked);
 
-    assert(isEmissive(t));
+    assert(isEmissiveSpectrum(t));
     assert(polarisationComponentChecked == stokesComponent);
     assert(wavelength_nmChecked == wavelength_nm);
 #endif
@@ -480,7 +480,7 @@ namespace SEXR
       polarisationComponentChecked,
       wavelength_nmChecked);
 
-    assert(isReflective(t));
+    assert(isReflectiveSpectrum(t));
     assert(wavelength_nmChecked == wavelength_nm);
 #endif
 

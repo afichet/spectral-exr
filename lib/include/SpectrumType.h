@@ -50,19 +50,22 @@ namespace SEXR
     return static_cast<SpectrumType>(static_cast<int>(a) ^ static_cast<int>(b));
   }
 
-  inline bool isReflective(SpectrumType s)
+  inline bool isReflectiveSpectrum(SpectrumType s)
   {
     return (s & REFLECTIVE) == REFLECTIVE;
   }
 
-  inline bool isEmissive(SpectrumType s) { return (s & EMISSIVE) == EMISSIVE; }
+  inline bool isEmissiveSpectrum(SpectrumType s)
+  {
+    return (s & EMISSIVE) == EMISSIVE;
+  }
 
-  inline bool isPolarised(SpectrumType s)
+  inline bool isPolarisedSpectrum(SpectrumType s)
   {
     return (s & POLARISED) == POLARISED;
   }
 
-  inline bool isBispectral(SpectrumType s)
+  inline bool isBispectralSpectrum(SpectrumType s)
   {
     return (s & BISPECTRAL) == BISPECTRAL;
   }

@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     tabularOut << "S" << s << " ";
   }
 
-  if (image.reflective()) {
+  if (image.isReflective()) {
     tabularOut << "T";
   }
 
@@ -63,11 +63,11 @@ int main(int argc, char *argv[])
     tabularOut << image.wavelength_nm(wl_idx);
 
     for (size_t s = 0; s < image.nStokesComponents(); s++) {
-      tabularOut << " " << image(x, y, wl_idx, s);
+      tabularOut << " " << image.emissive(x, y, wl_idx, s);
     }
 
-    if (image.reflective()) {
-      tabularOut << " " << image(x, y, wl_idx);
+    if (image.isReflective()) {
+      tabularOut << " " << image.reflective(x, y, wl_idx);
     }
 
     tabularOut << "\n";

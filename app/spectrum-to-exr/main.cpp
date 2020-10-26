@@ -100,9 +100,15 @@ int main(int argc, char *argv[])
 
   EXRSpectralImage image(1, 1, wavelengths_nm, type);
   if (type == REFLECTIVE) {
-    memcpy(&image(0, 0, 0), &values[0], values.size() * sizeof(float));
+    memcpy(
+      &image.reflective(0, 0, 0),
+      &values[0],
+      values.size() * sizeof(float));
   } else {
-    memcpy(&image(0, 0, 0, 0), &values[0], values.size() * sizeof(float));
+    memcpy(
+      &image.emissive(0, 0, 0, 0),
+      &values[0],
+      values.size() * sizeof(float));
   }
   image.save(fileOut);
 

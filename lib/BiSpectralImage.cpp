@@ -46,7 +46,7 @@ namespace SEXR
     SpectrumType              type)
     : SpectralImage(width, height, wavelengths_nm, type)
   {
-    if (bispectral()) {
+    if (isBispectral()) {
       _reradiation.resize(reradiationSize() * _width * _height);
     }
   }
@@ -57,7 +57,7 @@ namespace SEXR
     // Export the diagonal
     SpectralImage::exportChannels(path);
 
-    if (bispectral()) {
+    if (isBispectral()) {
       const size_t xStride = sizeof(float) * reradiationSize();
       const size_t yStride = xStride * width();
 
@@ -100,15 +100,15 @@ namespace SEXR
 
   void BiSpectralImage::getRGBImage(std::vector<float> &rgbImage) const
   {
-    if (!bispectral()) {
+    if (!isBispectral()) {
       SpectralImage::getRGBImage(rgbImage);
     } else {
       rgbImage.resize(3 * width() * height());
-      SpectrumConverter sc(emissive());
+      SpectrumConverter sc(isEmissive());
 
       std::array<float, 3> rgb;
 
-      if (emissive() && reflective()) {
+      if (isEmissive() && isReflective()) {
         for (size_t i = 0; i < width() * height(); i++) {
           sc.spectraToRGB(
             _wavelengths_nm,
@@ -126,7 +126,7 @@ namespace SEXR
             rgbImage[3 * i + c] *= std::pow(2.F, _ev);
           }
         }
-      } else if (reflective()) {
+      } else if (isReflective()) {
         for (size_t i = 0; i < width() * height(); i++) {
           sc.spectrumToRGB(
             _wavelengths_nm,
@@ -181,22 +181,22 @@ namespace SEXR
     assert(wavelengthFrom_idx < nSpectralBands());
     assert(wavelengthTo_idx < nSpectralBands());
 
-    if (!reflective() || wavelengthFrom_idx > wavelengthTo_idx) {
+    if (!isReflective() || wavelengthFrom_idx > wavelengthTo_idx) {
       return 0.F;
     }
 
-    if (!bispectral()) {
+    if (!isBispectral()) {
       return 0.F;
     }
 
-    return this->operator()(x, y, wavelengthFrom_idx, wavelengthTo_idx);
+    return reflective(x, y, wavelengthFrom_idx, wavelengthTo_idx);
   }
 
 
-  float &BiSpectralImage::operator()(
+  float &BiSpectralImage::reflective(
     size_t x, size_t y, size_t wavelengthFrom_idx, size_t wavelengthTo_idx)
   {
-    assert(reflective());
+    assert(isReflective());
     assert(x < width());
     assert(y < height());
     assert(wavelengthFrom_idx < nSpectralBands());
@@ -204,10 +204,10 @@ namespace SEXR
     assert(wavelengthFrom_idx <= wavelengthTo_idx);
 
     if (wavelengthFrom_idx == wavelengthTo_idx) {
-      return SpectralImage::operator()(x, y, wavelengthFrom_idx);
+      return SpectralImage::reflective(x, y, wavelengthFrom_idx);
     }
 
-    assert(bispectral());
+    assert(isBispectral());
     assert(_reradiation.size() == reradiationSize() * width() * height());
 
     size_t reradIdx
@@ -217,23 +217,23 @@ namespace SEXR
   }
 
 
-  const float &BiSpectralImage::operator()(
+  const float &BiSpectralImage::reflective(
     size_t x,
     size_t y,
     size_t wavelengthFrom_idx,
     size_t wavelengthTo_idx) const
   {
-    assert(reflective());
+    assert(isReflective());
     assert(x < width());
     assert(y < height());
     assert(wavelengthFrom_idx < nSpectralBands());
     assert(wavelengthTo_idx < nSpectralBands());
 
     if (wavelengthFrom_idx == wavelengthTo_idx) {
-      return SpectralImage::operator()(x, y, wavelengthFrom_idx);
+      return SpectralImage::reflective(x, y, wavelengthFrom_idx);
     }
 
-    assert(bispectral());
+    assert(isBispectral());
     assert(_reradiation.size() == reradiationSize() * width() * height());
 
     size_t reradIdx

@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
          || (int(v_idx) == 3 && f_v > s_v / 2. && f_v < 1. - s_v))
         && ((int(u_idx) == 0 && f_u > s_u && f_u < 1. - s_u / 2.) || (int(u_idx) > 0 && int(u_idx) < 5 && f_u > s_u / 2. && f_u < 1. - s_u / 2.) || (int(u_idx) == 5 && f_u > s_u / 2. && f_u < 1. - s_u))) {
         memcpy(
-          &spectralImage(x, y, 0),
+          &spectralImage.reflective(x, y, 0),
           &macbeth_patches[idx][0],
           spectralImage.nSpectralBands() * sizeof(float));
       }

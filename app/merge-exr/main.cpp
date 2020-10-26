@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
   EXRSpectralImage spectralImage(width, height, wavelengths, EMISSIVE);
 
   memcpy(
-    &spectralImage(0, 0, 0, 0),
+    &spectralImage.emissive(0, 0, 0, 0),
     &spectralFramebuffer[0],
     width * height * wavelengths.size() * sizeof(float));
 

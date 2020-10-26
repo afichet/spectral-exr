@@ -145,12 +145,11 @@ namespace SEXR
     const float &exposureCompensationValue() const;
 
 
-#warning This cause unnecessary confusion. Shall be remode (see bispectral)
     // Access the emissive part
-    virtual float &operator()(
-      size_t x, size_t y, size_t wavelength_idx, size_t stokesComponent);
+    virtual float &
+    emissive(size_t x, size_t y, size_t wavelength_idx, size_t stokesComponent);
 
-    virtual const float &operator()(
+    virtual const float &emissive(
       size_t x, size_t y, size_t wavelength_idx, size_t stokesComponent) const;
 
     // Access the reflective part
@@ -163,10 +162,10 @@ namespace SEXR
      * @param y row coordinate in the image in pixels (0 on top).
      * @param wavelength_idx index of the radiating wavelength.
      */
-    virtual float &operator()(size_t x, size_t y, size_t wavelength_idx);
+    virtual float &reflective(size_t x, size_t y, size_t wavelength_idx);
 
     virtual const float &
-    operator()(size_t x, size_t y, size_t wavelength_idx) const;
+    reflective(size_t x, size_t y, size_t wavelength_idx) const;
 
     // Those are not direct memory access
     // They can be called whatever the image type is
@@ -219,16 +218,16 @@ namespace SEXR
     size_t nStokesComponents() const;
 
     /** True if the image is polarised, False otherwise */
-    bool polarised() const;
+    bool isPolarised() const;
 
     /** True if the image contains emissive data, False otherwise */
-    bool emissive() const;
+    bool isEmissive() const;
 
     /** True if the image contains reflective data, False otherwise */
-    bool reflective() const;
+    bool isReflective() const;
 
     /** True if the image contains bispectral data, False otherwise */
-    bool bispectral() const;
+    bool isBispectral() const;
 
     /** Spectrum type contains at each pixel location in the image */
     SpectrumType type() const;
