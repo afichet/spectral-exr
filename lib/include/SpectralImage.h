@@ -49,15 +49,48 @@ namespace SEXR
       INCORRECT_FORMED_FILE
     };
 
+    /**
+     * Creates a new spectral image.
+     *
+     * @param width width of the image.
+     * @param height height of the image.
+     * @param wavelengths_nm wavlengths in nanometers of the image.
+     * @param type spectrum type represented in the image.
+     */
     SpectralImage(
       size_t                    width          = 0,
       size_t                    height         = 0,
       const std::vector<float> &wavelengths_nm = std::vector<float>(),
       SpectrumType              type           = EMISSIVE);
 
+    /**
+     * Saves the image to an EXR file.
+     *
+     * @param filename path where the image shall be saved.
+     */
     virtual void save(const std::string &filename) const = 0;
 
+    /**
+     * Export each channel value in an individual EXR image.
+     * For each spectral and bispectral channel, an individual image
+     * will be created in the folder pointed by path. The folder must
+     * exists prior to the call of this method.
+     *  - Reflective / Transmissive channels are prefixed with "T - "
+     *  - Emissive channels are prefixed with "S - "
+     * Then, the wavelength in nanometer is appended with "nm" unit
+     * specified.
+     *
+     * @param path folder path where to export the images.
+     */
     virtual void exportChannels(const std::string &path) const;
+
+    /**
+     * Get the RGB version of the image. The rgb image is stored
+     * as rgbImage[3 * (row * width + col) + color].
+     *
+     * @param rgbImage a reference to the pointer where to store
+     * the RGB version of this bispectral image.
+     */
     virtual void getRGBImage(std::vector<float> &rgbImage) const;
 
     void setCameraResponse(
@@ -66,29 +99,53 @@ namespace SEXR
 
     const SpectrumAttribute &cameraResponse() const;
 
-
+    /**
+     * Sets the lens transmissivity curve.
+     *
+     * @param wavelengths_nm wavelengths of the transmissive spectrum.
+     * @param values transmissives values of the lens.
+     */
     void setLensTransmission(
       const std::vector<float> &wavelengths_nm,
       const std::vector<float> &values);
 
-
+    /** Gets the lens transmissivitiy function. */
     const SpectrumAttribute &lensTransmission() const;
 
+    /**
+     * Sets a "filter" transmissivity curve for a specific wavelength.
+     *
+     * @param wl_idx wavelenght index which the filter corresponds to.
+     * @param wavelengths_nm wavelengths of the transmissive spectrum.
+     * @param values transmissives values of the filter.
+     */
     void setChannelSensitivity(
       size_t                    wl_idx,
       const std::vector<float> &wavelengths_nm,
       const std::vector<float> &values);
 
-
+    /** Gets the transmissivity curves for each wavelength */
     const std::vector<SpectrumAttribute> &channelSensitivities() const;
 
+    /**
+     * Gets the transmissivity curve for a specific wavelength
+     *
+     * @param wl_idx index of the wavlength to get the sensitivity curve from.
+     */
     const SpectrumAttribute &channelSensitivity(size_t wl_idx) const;
 
-
+    /**
+     * Sets the exposure compensation values to use for the RGB representation.
+     */
     void setExposureCompensationValue(float ev);
 
+    /**
+     * Gets the exposure compensation values used by the RGB representation.
+     */
     const float &exposureCompensationValue() const;
 
+
+#warning This cause unnecessary confusion. Shall be remode (see bispectral)
     // Access the emissive part
     virtual float &operator()(
       size_t x, size_t y, size_t wavelength_idx, size_t stokesComponent);
@@ -97,6 +154,15 @@ namespace SEXR
       size_t x, size_t y, size_t wavelength_idx, size_t stokesComponent) const;
 
     // Access the reflective part
+
+    /**
+     * Gives a reference to the reflective element at location x, y
+     * for given a wavelength index.
+     *
+     * @param x column coordinate in the image in pixels (0 on left).
+     * @param y row coordinate in the image in pixels (0 on top).
+     * @param wavelength_idx index of the radiating wavelength.
+     */
     virtual float &operator()(size_t x, size_t y, size_t wavelength_idx);
 
     virtual const float &
@@ -105,27 +171,66 @@ namespace SEXR
     // Those are not direct memory access
     // They can be called whatever the image type is
 
+    /**
+     * Return the emissive value for a given pixel for a given
+     * wavelength.
+     *
+     * @param x column coordinate in the image in pixels (0 on left).
+     * @param y row coordinate in the image in pixels (0 on top).
+     * @param wavelength_idx index of the wavelength.
+     * @param stokesComponent index of the Stokes component.
+     */
     virtual float getEmissiveValue(
       size_t x,
       size_t y,
       size_t wavelength_idx,
       size_t stokesComponent = 0) const;
 
+    /**
+     * Return the reflective value for a given pixel for a given
+     * wavelength.
+     *
+     * @param x column coordinate in the image in pixels (0 on left).
+     * @param y row coordinate in the image in pixels (0 on top).
+     * @param wavelength_idx index of the wavelength.
+     */
     virtual float
     getReflectiveValue(size_t x, size_t y, size_t wavelength_idx) const;
 
+    /**
+     * Gets the wavelength value in nanometer from a specific wavelength
+     * index.
+     */
     const float &wavelength_nm(size_t wl_idx) const;
 
+    /** Gets the width of the image in pixels. */
     size_t width() const;
+
+    /** Gets the height of the image in pixels. */
     size_t height() const;
 
+    /** Gets the number of spectral bands. */
     size_t nSpectralBands() const;
+
+    /**
+     * Gets the number of Stokes components. 1 for a non polarised image,
+     * 4 for a polarised image.
+     */
     size_t nStokesComponents() const;
 
-    bool         polarised() const;
-    bool         emissive() const;
-    bool         reflective() const;
-    bool         bispectral() const;
+    /** True if the image is polarised, False otherwise */
+    bool polarised() const;
+
+    /** True if the image contains emissive data, False otherwise */
+    bool emissive() const;
+
+    /** True if the image contains reflective data, False otherwise */
+    bool reflective() const;
+
+    /** True if the image contains bispectral data, False otherwise */
+    bool bispectral() const;
+
+    /** Spectrum type contains at each pixel location in the image */
     SpectrumType type() const;
 
   protected:
