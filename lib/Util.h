@@ -52,14 +52,14 @@ namespace SEXR
     static float lerp(float a, float b, float t) { return a + t * (b - a); }
 
 
-    static float strToNanometers(
-      const float &value, const std::string &prefix, const std::string &units)
+    static double strToNanometers(
+      const double &value, const std::string &prefix, const std::string &units)
     {
       if (prefix == "n" && units == "m") return value;
 
-      float wavelength_nm = value;
+      double wavelength_nm = value;
 
-      const std::map<std::string, float> unit_prefix = {
+      const std::map<std::string, double> unit_prefix = {
         {"Y", 1e24},
         {"Z", 1e21},
         {"E", 1e18},
@@ -84,7 +84,7 @@ namespace SEXR
 
       // Apply units
       if (units == "Hz") {
-        wavelength_nm = 299792458.F / wavelength_nm * 1e9;
+        wavelength_nm = 299792458. / wavelength_nm * 1e9;
       } else if (units == "m") {
         wavelength_nm = wavelength_nm * 1e9;
       } else {

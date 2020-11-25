@@ -75,7 +75,7 @@ namespace SEXR
          channel++) {
       // Check if the channel is a spectral one
       int          polarisationComponent;
-      float        wavelength_nm;
+      double       wavelength_nm;
       SpectrumType spectralChannel
         = channelType(channel.name(), polarisationComponent, wavelength_nm);
 
@@ -373,7 +373,7 @@ namespace SEXR
   SpectrumType EXRSpectralImage::channelType(
     const std::string &channelName,
     int &              polarisationComponent,
-    float &            wavelength_nm)
+    double &           wavelength_nm)
   {
     const std::regex expr(
       "^((S([0-3]))|T)\\.(\\d*,?\\d*([Ee][+-]?\\d+)?)(Y|Z|E|P|T|G|M|k|h|"
@@ -410,7 +410,7 @@ namespace SEXR
       // Get value
       std::string centralValueStr(matches[4].str());
       std::replace(centralValueStr.begin(), centralValueStr.end(), ',', '.');
-      const float value = std::stof(centralValueStr);
+      const double value = std::stod(centralValueStr);
 
       // Convert to nanometers
       const std::string prefix = matches[6].str();
@@ -430,7 +430,7 @@ namespace SEXR
 
 
   std::string EXRSpectralImage::getEmissiveChannelName(
-    int stokesComponent, float wavelength_nm)
+    int stokesComponent, double wavelength_nm)
   {
     assert(stokesComponent < 4);
 
@@ -443,8 +443,8 @@ namespace SEXR
     const std::string channelName = b.str();
 
 #ifndef NDEBUG
-    int   polarisationComponentChecked;
-    float wavelength_nmChecked;
+    int    polarisationComponentChecked;
+    double wavelength_nmChecked;
 
     SpectrumType t = channelType(
       channelName,
@@ -460,7 +460,7 @@ namespace SEXR
   }
 
 
-  std::string EXRSpectralImage::getReflectiveChannelName(float wavelength_nm)
+  std::string EXRSpectralImage::getReflectiveChannelName(double wavelength_nm)
   {
     std::stringstream b;
     std::string       wavelengthStr = std::to_string(wavelength_nm);
@@ -472,8 +472,8 @@ namespace SEXR
     const std::string channelName = b.str();
 
 #ifndef NDEBUG
-    int   polarisationComponentChecked;
-    float wavelength_nmChecked;
+    int    polarisationComponentChecked;
+    double wavelength_nmChecked;
 
     SpectrumType t = channelType(
       channelName,

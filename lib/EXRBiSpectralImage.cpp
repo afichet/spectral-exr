@@ -76,8 +76,8 @@ namespace SEXR
          channel != exrChannels.end();
          channel++) {
       // Check if the channel is a spectral or a bispectral one
-      int   polarisationComponent;
-      float in_wavelength_nm, out_wavelength_nm;
+      int    polarisationComponent;
+      double in_wavelength_nm, out_wavelength_nm;
 
       SpectrumType currChannelType = channelType(
         channel.name(),
@@ -485,8 +485,8 @@ namespace SEXR
   SpectrumType EXRBiSpectralImage::channelType(
     const std::string &channelName,
     int &              polarisationComponent,
-    float &            wavelength_nm,
-    float &            reradiation_wavelength_nm)
+    double &           wavelength_nm,
+    double &           reradiation_wavelength_nm)
   {
     const std::string exprRefl   = "T";
     const std::string exprStokes = "S([0-3])";
@@ -533,7 +533,7 @@ namespace SEXR
       // Get value illumination
       std::string centralValueStr(matches[4].str());
       std::replace(centralValueStr.begin(), centralValueStr.end(), ',', '.');
-      const float value = std::stof(centralValueStr);
+      const double value = std::stod(centralValueStr);
 
       wavelength_nm = Util::strToNanometers(
         value,              // Comma separated floating point value
@@ -583,7 +583,7 @@ namespace SEXR
 
 
   std::string EXRBiSpectralImage::getEmissiveChannelName(
-    int stokesComponent, float wavelength_nm)
+    int stokesComponent, double wavelength_nm)
   {
     assert(stokesComponent < 4);
 
@@ -597,8 +597,8 @@ namespace SEXR
 
 #ifndef NDEBUG
     int          stokesComponentChecked;
-    float        wavelength_nmChecked;
-    float        wavelength_nmCheckedOut;
+    double       wavelength_nmChecked;
+    double       wavelength_nmCheckedOut;
     SpectrumType t = channelType(
       channelName,
       stokesComponentChecked,
@@ -614,7 +614,7 @@ namespace SEXR
   }
 
 
-  std::string EXRBiSpectralImage::getReflectiveChannelName(float wavelength_nm)
+  std::string EXRBiSpectralImage::getReflectiveChannelName(double wavelength_nm)
   {
     std::stringstream b;
     std::string       wavelengthStr = std::to_string(wavelength_nm);
@@ -627,8 +627,8 @@ namespace SEXR
 
 #ifndef NDEBUG
     int          stokesComponent;
-    float        wavelength_nmChecked;
-    float        wavelength_nmCheckedOut;
+    double       wavelength_nmChecked;
+    double       wavelength_nmCheckedOut;
     SpectrumType t = channelType(
       channelName,
       stokesComponent,
@@ -644,7 +644,7 @@ namespace SEXR
 
 
   std::string EXRBiSpectralImage::getReradiationChannelName(
-    float wavelength_nm, float reradiation_wavelength_nm)
+    double wavelength_nm, double reradiation_wavelength_nm)
   {
     std::string reradWavelengthStr = std::to_string(reradiation_wavelength_nm);
     std::replace(
@@ -660,9 +660,9 @@ namespace SEXR
     const std::string channelName = b.str();
 
 #ifndef NDEBUG
-    int   stokesComponent;
-    float wavelength_nmChecked;
-    float reradiation_wavelength_nmChecked;
+    int    stokesComponent;
+    double wavelength_nmChecked;
+    double reradiation_wavelength_nmChecked;
 
     SpectrumType t = channelType(
       channelName,

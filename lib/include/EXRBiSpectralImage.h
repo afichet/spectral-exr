@@ -67,8 +67,8 @@ namespace SEXR
     static SpectrumType channelType(
       const std::string &channelName,
       int &              polarisationComponent,
-      float &            wavelengths_nm,
-      float &            reradiation_wavelength_nm);
+      double &           wavelengths_nm,
+      double &           reradiation_wavelength_nm);
 
     /**
      * Gets the channel name used in the EXR file for a specific
@@ -81,7 +81,7 @@ namespace SEXR
      * for the given Stokes component at a specific wavelength.
      */
     static std::string
-    getEmissiveChannelName(int stokesComponent, float wavelength_nm);
+    getEmissiveChannelName(int stokesComponent, double wavelength_nm);
 
     /**
      * Gets the channel name used in the EXR file for a specific
@@ -92,7 +92,7 @@ namespace SEXR
      * @returns std::string containing the reflective channel name
      * at a specific wavelength.
      */
-    static std::string getReflectiveChannelName(float wavelength_nm);
+    static std::string getReflectiveChannelName(double wavelength_nm);
 
     /**
      * Gets the channel name used in the EXR file for a specific
@@ -107,7 +107,7 @@ namespace SEXR
      * band.
      */
     static std::string getReradiationChannelName(
-      float wavelength_nm, float reradiation_wavelength_nm);
+      double wavelength_nm, double reradiation_wavelength_nm);
 
     static constexpr const char *SPECTRUM_TYPE_ATTR     = "Spectrum type";
     static constexpr const char *LENS_TRANSMISSION_ATTR = "Lens transmission";
