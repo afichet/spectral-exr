@@ -76,16 +76,16 @@ namespace SEXR
       // Check if the channel is a spectral one
       int          polarisationComponent;
       float        wavelength_nm;
-      SpectrumType spectralChanel
+      SpectrumType spectralChannel
         = channelType(channel.name(), polarisationComponent, wavelength_nm);
 
-      if (spectralChanel != SpectrumType::UNDEFINED) {
-        _spectrumType = _spectrumType | spectralChanel;
+      if (spectralChannel != SpectrumType::UNDEFINED) {
+        _spectrumType = _spectrumType | spectralChannel;
 
-        if (isEmissiveSpectrum(spectralChanel)) {
+        if (isEmissiveSpectrum(spectralChannel)) {
           wavelengths_nm_S[polarisationComponent].push_back(
             std::make_pair(wavelength_nm, channel.name()));
-        } else if (isReflectiveSpectrum(spectralChanel)) {
+        } else if (isReflectiveSpectrum(spectralChannel)) {
           wavelengths_nm_reflective.push_back(
             std::make_pair(wavelength_nm, channel.name()));
         }
