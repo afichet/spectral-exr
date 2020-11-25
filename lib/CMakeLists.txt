@@ -11,10 +11,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(OpenEXR REQUIRED)
 
-if (NOT DEFINED CMAKE_INSTALL_LIBDIR)
-    set(CMAKE_INSTALL_LIBDIR lib)
-endif()
-
 if (OpenEXR_FOUND)
     set(PUBLIC_HEADERS
         include/SpecturmType.h
