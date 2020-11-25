@@ -13,7 +13,7 @@ find_package(OpenEXR REQUIRED)
 
 if (OpenEXR_FOUND)
     set(PUBLIC_HEADERS
-        include/SpecturmType.h
+        include/SpectrumType.h
         include/SpectrumAttribute.h
         
         include/SpectralImage.h
@@ -51,7 +51,7 @@ if (OpenEXR_FOUND)
         target_compile_options(EXRSpectralImage PUBLIC -Wall -Wextra -Wpedantic)
     endif()
 
-    configure_file(EXRSpectralImage.pc.in EXRSpectralImage.pc @ONLY)
+    configure_file(EXRSpectralImage.pc.in ${CMAKE_BINARY_DIR}/EXRSpectralImage.pc @ONLY)
 
     install(TARGETS EXRSpectralImage
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
