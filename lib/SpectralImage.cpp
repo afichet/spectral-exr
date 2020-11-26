@@ -30,6 +30,7 @@
 
 #include <sstream>
 #include <cassert>
+#include <cmath>
 #include <functional>
 
 #include <OpenEXR/ImfOutputFile.h>
