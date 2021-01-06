@@ -42,12 +42,14 @@ namespace SEXR
      * @param height height of the image.
      * @param wavelengths_nm wavlengths in nanometers of the image.
      * @param type spectrum type represented in the image.
+     * @param handedness polarisation handedness convention.
      */
     BiSpectralImage(
       size_t                    width          = 0,
       size_t                    height         = 0,
       const std::vector<float> &wavelengths_nm = std::vector<float>(),
-      SpectrumType              type           = REFLECTIVE);
+      SpectrumType              type           = REFLECTIVE,
+      PolarisationHandedness    handedness     = RIGHT_HANDED);
 
     /**
      * Export each channel value in an individual EXR image.

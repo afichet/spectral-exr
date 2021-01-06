@@ -43,12 +43,14 @@ namespace SEXR
     size_t                    width,
     size_t                    height,
     const std::vector<float> &wavelengths_nm,
-    SpectrumType              type)
+    SpectrumType              type,
+    PolarisationHandedness    handedness)
     : _width(width)
     , _height(height)
     , _ev(0)
     , _wavelengths_nm(wavelengths_nm)
     , _spectrumType(type)
+    , _polarisationHandedness(handedness)
   {
     const size_t buffSize = nSpectralBands() * _width * _height;
 

@@ -45,8 +45,9 @@ namespace SEXR
     size_t                    width,
     size_t                    height,
     const std::vector<float> &wavelengths_nm,
-    SpectrumType              type)
-    : BiSpectralImage(width, height, wavelengths_nm, type)
+    SpectrumType              type,
+    PolarisationHandedness    handedness)
+    : BiSpectralImage(width, height, wavelengths_nm, type, handedness)
   {}
 
 
@@ -354,6 +355,21 @@ namespace SEXR
         throw INCORRECT_FORMED_FILE;
       }
     }
+
+    // Polarisation handedness
+    const Imf::StringAttribute *polarisationHandednessAttr
+      = exrHeader.findTypedAttribute<Imf::StringAttribute>(
+        POLARISATION_HANDEDNESS_ATTR);
+
+    if (polarisationHandednessAttr != nullptr) {
+      if (polarisationHandednessAttr->value() == "left") {
+        _polarisationHandedness = LEFT_HANDED;
+      } else if (polarisationHandednessAttr->value() == "right") {
+        _polarisationHandedness = RIGHT_HANDED;
+      } else {
+        throw INCORRECT_FORMED_FILE;
+      }
+    }
   }
 
 
@@ -475,12 +491,20 @@ namespace SEXR
       EXPOSURE_COMPENSATION_ATTR,
       Imf::StringAttribute(std::to_string(_ev)));
 
+    // Polarisation handedness
+    if (isPolarised()) {
+      Imf::StringAttribute handednessAtrrValue(
+        _polarisationHandedness == LEFT_HANDED ? "left" : "right");
+
+      exrHeader.insert(
+        POLARISATION_HANDEDNESS_ATTR,
+        Imf::StringAttribute(handednessAtrrValue));
+    }
 
     Imf::OutputFile exrOut(filename.c_str(), exrHeader);
     exrOut.setFrameBuffer(exrFrameBuffer);
     exrOut.writePixels(height());
   }
-
 
   SpectrumType EXRBiSpectralImage::channelType(
     const std::string &channelName,

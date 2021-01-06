@@ -43,8 +43,9 @@ namespace SEXR
     size_t                    width,
     size_t                    height,
     const std::vector<float> &wavelengths_nm,
-    SpectrumType              type)
-    : SpectralImage(width, height, wavelengths_nm, type)
+    SpectrumType              type,
+    PolarisationHandedness    handedness)
+    : SpectralImage(width, height, wavelengths_nm, type, handedness)
   {
     if (isBispectral()) {
       _reradiation.resize(reradiationSize() * _width * _height);

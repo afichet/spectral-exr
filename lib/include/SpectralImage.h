@@ -49,6 +49,12 @@ namespace SEXR
       INCORRECT_FORMED_FILE
     };
 
+    enum PolarisationHandedness
+    {
+      LEFT_HANDED,
+      RIGHT_HANDED
+    };
+
     /**
      * Creates a new spectral image.
      *
@@ -56,12 +62,14 @@ namespace SEXR
      * @param height height of the image.
      * @param wavelengths_nm wavlengths in nanometers of the image.
      * @param type spectrum type represented in the image.
+     * @param handedness polarisation handedness convention.
      */
     SpectralImage(
       size_t                    width          = 0,
       size_t                    height         = 0,
       const std::vector<float> &wavelengths_nm = std::vector<float>(),
-      SpectrumType              type           = EMISSIVE);
+      SpectrumType              type           = EMISSIVE,
+      PolarisationHandedness    handedness     = RIGHT_HANDED);
 
     /**
      * Saves the image to an EXR file.
@@ -246,6 +254,8 @@ namespace SEXR
 
     std::vector<float> _wavelengths_nm;
     SpectrumType       _spectrumType;
+
+    PolarisationHandedness _polarisationHandedness;
 
     SpectrumAttribute              _lensTransmissionSpectra;
     SpectrumAttribute              _cameraReponse;
