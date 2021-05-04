@@ -212,6 +212,14 @@ namespace SEXR
     // Read metadata
     // -----------------------------------------------------------------------
 
+    // Check if the version match
+    const Imf::StringAttribute *versionAttr 
+      = exrHeader.findTypedAttribute<Imf::StringAttribute>(VERSION_ATTR);
+      
+    if (versionAttr == nullptr || versionAttr->value() != "1.0") {
+      std::cout << "WARN: The version is different from the one expected by this library" << std::endl;
+    }
+
     // Lens transmission data
     const Imf::StringAttribute *lensTransmissionAttr
       = exrHeader.findTypedAttribute<Imf::StringAttribute>(
@@ -349,6 +357,8 @@ namespace SEXR
     // -----------------------------------------------------------------------
     // Write metadata
     // -----------------------------------------------------------------------
+    
+    exrHeader.insert(VERSION_ATTR, Imf::StringAttribute("1.0"));
 
     if (lensTransmission().size() > 0) {
       exrHeader.insert(
