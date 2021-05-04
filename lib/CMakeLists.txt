@@ -5,11 +5,20 @@ project(EXRSpectralImage
     DESCRIPTION "Library for loading and writing OpenEXR spectral images"
     )
 
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(OpenEXR REQUIRED)
+# OpenEXR 3.0 provides its own find_package
+find_package(OpenEXR CONFIG)
+find_package(Imath CONFIG)
+
+if (OpenEXR_FOUND)
+    set(OpenEXR_LIBRARIES OpenEXR::OpenEXR Imath::Imath)
+else()
+    # For OpenEXR 2.0 we rely on our own find_package
+    set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+    find_package(OpenEXR REQUIRED)
+endif()
 
 if (OpenEXR_FOUND)
     set(PUBLIC_HEADERS

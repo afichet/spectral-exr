@@ -35,6 +35,7 @@
 
 #include <OpenEXR/ImfOutputFile.h>
 #include <OpenEXR/ImfChannelList.h>
+#include <OpenEXR/ImfFrameBuffer.h>
 
 #include "SpectrumConverter.h"
 

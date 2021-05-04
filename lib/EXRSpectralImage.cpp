@@ -38,6 +38,7 @@
 #include <OpenEXR/ImfOutputFile.h>
 #include <OpenEXR/ImfChannelList.h>
 #include <OpenEXR/ImfStringAttribute.h>
+#include <OpenEXR/ImfFrameBuffer.h>
 
 namespace SEXR
 {
