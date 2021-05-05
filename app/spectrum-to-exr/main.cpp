@@ -45,9 +45,9 @@ int main(int argc, char *argv[])
               << "<spectrum>   A spectrum in comma separated values with "
                  "wavelength_nm, value."
               << std::endl
-              << "<type>       Ca be \"reflective\" or \"emissive\"."
+              << "<type>       Can be \"reflective\" or \"emissive\"."
               << std::endl
-              << "<output_exr> The path of the spectral EXR to create."
+              << "<output_exr> The path to the spectral EXR to create."
               << std::endl
               << std::endl;
 
