@@ -31,8 +31,13 @@
 #include <vector>
 #include <array>
 #include <string>
+#include <map>
 
 #include "SpectralImage.h"
+
+#include <OpenEXR/ImfFrameBuffer.h>
+#include <OpenEXR/ImfChannelList.h>
+#include <OpenEXR/ImfHeader.h>
 
 namespace SEXR
 {
@@ -61,12 +66,10 @@ namespace SEXR
      */
     EXRSpectralImage(const std::string &filename);
 
-    /**
-     * Saves the spectral image to an EXR file.
-     *
-     * @param filename path where the image shall be saved.
-     */
-    void save(const std::string &filename) const;
+    virtual ~EXRSpectralImage();
+
+    virtual void
+    appendChild(const std::string &childName, EXRSpectralImage *child);
 
     static SpectrumType channelType(
       const std::string &channelName,
@@ -96,8 +99,35 @@ namespace SEXR
      */
     static std::string getReflectiveChannelName(double wavelength_nm);
 
-    static constexpr const char *VERSION_ATTR           = "spectralLayoutVersion";
-    static constexpr const char *SPECTRUM_TYPE_ATTR     = "spectrumType";
+    /**
+     * Saves the spectral image to an EXR file.
+     *
+     * @param filename path where the image shall be saved.
+     */
+    void save(const std::string &filename) const;
+
+  protected:
+    /**
+     * Saves all spectral and EXR information of the spectral image in a given
+     * parent layer name
+     *
+     * @param exrFrameBuffer framebuffer of the OpenEXR image
+     * @param exrChannels channel list of the OpenEXR image
+     * @param layerPrefix prefix of the layer (e.g., "left.")
+     */
+    virtual void saveLayers(
+      Imf::FrameBuffer & exrFrameBuffer,
+      Imf::ChannelList & exrChannels,
+      const std::string &layerPrefix) const;
+
+    virtual void saveChannelSensitivities(
+      Imf::Header &exrHeader, const std::string &layerPrefix) const;
+
+    std::map<std::string, EXRSpectralImage *> _children;
+
+  public:
+    static constexpr const char *VERSION_ATTR       = "spectralLayoutVersion";
+    static constexpr const char *SPECTRUM_TYPE_ATTR = "spectrumType";
     static constexpr const char *LENS_TRANSMISSION_ATTR = "lensTransmission";
     static constexpr const char *CAMERA_RESPONSE_ATTR   = "cameraResponse";
     static constexpr const char *EXPOSURE_COMPENSATION_ATTR = "EV";
