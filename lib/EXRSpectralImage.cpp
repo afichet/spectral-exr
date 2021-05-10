@@ -36,9 +36,7 @@
 
 #include <OpenEXR/ImfInputFile.h>
 #include <OpenEXR/ImfOutputFile.h>
-#include <OpenEXR/ImfChannelList.h>
 #include <OpenEXR/ImfStringAttribute.h>
-#include <OpenEXR/ImfFrameBuffer.h>
 
 namespace SEXR
 {
@@ -307,124 +305,27 @@ namespace SEXR
   }
 
 
-  void EXRSpectralImage::save(const std::string &filename) const
+  EXRSpectralImage::~EXRSpectralImage()
   {
-    Imf::Header       exrHeader(width(), height());
-    Imf::ChannelList &exrChannels = exrHeader.channels();
-
-    // -----------------------------------------------------------------------
-    // Write the pixel data
-    // -----------------------------------------------------------------------
-
-    // Layout framebuffer
-    Imf::FrameBuffer     exrFrameBuffer;
-    const Imf::PixelType compType = Imf::FLOAT;
-
-    // Write RGB version
-    std::vector<float> rgbImage;
-    getRGBImage(rgbImage);
-
-    const std::array<std::string, 3> rgbChannels = {"R", "G", "B"};
-    const size_t                     xStrideRGB  = sizeof(float) * 3;
-    const size_t                     yStrideRGB  = xStrideRGB * width();
-
-    for (size_t c = 0; c < 3; c++) {
-      char *ptrRGB = (char *)(&rgbImage[c]);
-      exrChannels.insert(rgbChannels[c], Imf::Channel(compType));
-      exrFrameBuffer.insert(
-        rgbChannels[c],
-        Imf::Slice(compType, ptrRGB, xStrideRGB, yStrideRGB));
+    for (std::pair<std::string, EXRSpectralImage *> el : _children) {
+      delete el.second;
     }
-
-    // Write spectral version
-    const size_t xStride = sizeof(float) * nSpectralBands();
-    const size_t yStride = xStride * width();
-
-    for (size_t s = 0; s < nStokesComponents(); s++) {
-      for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
-        // Populate channel name
-        const std::string channelName
-          = getEmissiveChannelName(s, _wavelengths_nm[wl_idx]);
-        exrChannels.insert(channelName, Imf::Channel(compType));
-
-        char *ptrS = (char *)(&_emissivePixelBuffers[s][wl_idx]);
-        exrFrameBuffer.insert(
-          channelName,
-          Imf::Slice(compType, ptrS, xStride, yStride));
-      }
-    }
-
-    if (isReflective()) {
-      for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
-        // Populate channel name
-        const std::string channelName
-          = getReflectiveChannelName(_wavelengths_nm[wl_idx]);
-        exrChannels.insert(channelName, Imf::Channel(compType));
-
-        char *ptrS = (char *)(&_reflectivePixelBuffer[wl_idx]);
-        exrFrameBuffer.insert(
-          channelName,
-          Imf::Slice(compType, ptrS, xStride, yStride));
-      }
-    }
-
-    // -----------------------------------------------------------------------
-    // Write metadata
-    // -----------------------------------------------------------------------
-
-    exrHeader.insert(VERSION_ATTR, Imf::StringAttribute("1.0"));
-
-    if (lensTransmission().size() > 0) {
-      exrHeader.insert(
-        LENS_TRANSMISSION_ATTR,
-        lensTransmission().getAttribute());
-    }
-
-    if (cameraResponse().size() > 0) {
-      exrHeader.insert(CAMERA_RESPONSE_ATTR, cameraResponse().getAttribute());
-    }
-
-    if (channelSensitivities().size() > 0) {
-      for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
-        if (channelSensitivity(wl_idx).size() > 0) {
-          std::string channelName
-            = getEmissiveChannelName(0, _wavelengths_nm[wl_idx]);
-
-          exrHeader.insert(
-            channelName,
-            channelSensitivity(wl_idx).getAttribute());
-        }
-      }
-    }
-
-    exrHeader.insert(EXPOSURE_COMPENSATION_ATTR, Imf::FloatAttribute(_ev));
-
-    // Units
-    if (isEmissive()) {
-      exrHeader.insert(
-        EMISSIVE_UNITS_ATTR,
-        Imf::StringAttribute("W.m^-2.sr^-1"));
-    }
-
-    // Polarisation handedness
-    if (isPolarised()) {
-      Imf::StringAttribute handednessAtrrValue(
-        _polarisationHandedness == LEFT_HANDED ? "left" : "right");
-
-      exrHeader.insert(
-        POLARISATION_HANDEDNESS_ATTR,
-        Imf::StringAttribute(handednessAtrrValue));
-    }
-
-    // -----------------------------------------------------------------------
-    // Write file
-    // -----------------------------------------------------------------------
-
-    Imf::OutputFile exrOut(filename.c_str(), exrHeader);
-    exrOut.setFrameBuffer(exrFrameBuffer);
-    exrOut.writePixels(height());
   }
 
+  void EXRSpectralImage::appendChild(
+    const std::string &childName, EXRSpectralImage *child)
+  {
+    // Check if the child does not already exists
+    auto it = _children.find(childName);
+    if (it != _children.end()) {
+      std::cout << "WARN: The element \"" << childName
+                << "\"already exist, it will be replaced" << std::endl;
+
+      delete it->second;
+    }
+
+    _children[childName] = child;
+  }
 
   SpectrumType EXRSpectralImage::channelType(
     const std::string &channelName,
@@ -541,6 +442,154 @@ namespace SEXR
 #endif
 
     return channelName;
+  }
+
+
+  void EXRSpectralImage::save(const std::string &filename) const
+  {
+    Imf::Header       exrHeader(width(), height());
+    Imf::ChannelList &exrChannels = exrHeader.channels();
+
+    // -----------------------------------------------------------------------
+    // Write the pixel data
+    // -----------------------------------------------------------------------
+
+    Imf::FrameBuffer exrFrameBuffer;
+
+    // Main image
+    saveLayers(exrFrameBuffer, exrChannels, "");
+
+    // Child images
+    // It ignores any metadata... except for channel sensititivities
+    // Left to the user to make sure cameraResponse and so on are the same
+    for (std::pair<std::string, EXRSpectralImage *> el : _children) {
+      el.second->saveLayers(exrFrameBuffer, exrChannels, el.first + ".");
+    }
+
+    // -----------------------------------------------------------------------
+    // Write metadata
+    // -----------------------------------------------------------------------
+
+    exrHeader.insert(VERSION_ATTR, Imf::StringAttribute("1.0"));
+
+    if (lensTransmission().size() > 0) {
+      exrHeader.insert(
+        LENS_TRANSMISSION_ATTR,
+        lensTransmission().getAttribute());
+    }
+
+    if (cameraResponse().size() > 0) {
+      exrHeader.insert(CAMERA_RESPONSE_ATTR, cameraResponse().getAttribute());
+    }
+
+    saveChannelSensitivities(exrHeader, "");
+
+    for (std::pair<std::string, EXRSpectralImage *> el : _children) {
+      el.second->saveChannelSensitivities(exrHeader, el.first + ".");
+    }
+
+    exrHeader.insert(EXPOSURE_COMPENSATION_ATTR, Imf::FloatAttribute(_ev));
+
+    // Units
+    if (isEmissive()) {
+      exrHeader.insert(
+        EMISSIVE_UNITS_ATTR,
+        Imf::StringAttribute("W.m^-2.sr^-1"));
+    }
+
+    // Polarisation handedness
+    if (isPolarised()) {
+      Imf::StringAttribute handednessAtrrValue(
+        _polarisationHandedness == LEFT_HANDED ? "left" : "right");
+
+      exrHeader.insert(
+        POLARISATION_HANDEDNESS_ATTR,
+        Imf::StringAttribute(handednessAtrrValue));
+    }
+
+    // -----------------------------------------------------------------------
+    // Write file
+    // -----------------------------------------------------------------------
+
+    Imf::OutputFile exrOut(filename.c_str(), exrHeader);
+    exrOut.setFrameBuffer(exrFrameBuffer);
+    exrOut.writePixels(height());
+  }
+
+
+  void EXRSpectralImage::saveLayers(
+    Imf::FrameBuffer & exrFrameBuffer,
+    Imf::ChannelList & exrChannels,
+    const std::string &layerPrefix) const
+  {
+    const Imf::PixelType compType = Imf::FLOAT;
+
+    // // Write RGB version
+    // std::vector<float> rgbImage;
+    // getRGBImage(rgbImage);
+
+    // const size_t                     xStrideRGB = sizeof(float) * 3;
+    // const size_t                     yStrideRGB = xStrideRGB * width();
+    // const std::array<std::string, 3> rgbChannels
+    //   = {layerPrefix + "R", layerPrefix + "G", layerPrefix + "B"};
+
+    // for (size_t c = 0; c < 3; c++) {
+    //   char *ptrRGB = (char *)(&rgbImage[c]);
+    //   exrChannels.insert(rgbChannels[c], Imf::Channel(compType));
+    //   exrFrameBuffer.insert(
+    //     rgbChannels[c],
+    //     Imf::Slice(compType, ptrRGB, xStrideRGB, yStrideRGB));
+    // }
+
+    // Write spectral version
+    const size_t xStride = sizeof(float) * nSpectralBands();
+    const size_t yStride = xStride * width();
+
+    for (size_t s = 0; s < nStokesComponents(); s++) {
+      for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
+        // Populate channel name
+        const std::string channelName
+          = layerPrefix + getEmissiveChannelName(s, _wavelengths_nm[wl_idx]);
+        exrChannels.insert(channelName, Imf::Channel(compType));
+
+        char *ptrS = (char *)(&_emissivePixelBuffers[s][wl_idx]);
+        exrFrameBuffer.insert(
+          channelName,
+          Imf::Slice(compType, ptrS, xStride, yStride));
+      }
+    }
+
+    if (isReflective()) {
+      for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
+        // Populate channel name
+        const std::string channelName
+          = layerPrefix + getReflectiveChannelName(_wavelengths_nm[wl_idx]);
+        exrChannels.insert(channelName, Imf::Channel(compType));
+
+        char *ptrS = (char *)(&_reflectivePixelBuffer[wl_idx]);
+        exrFrameBuffer.insert(
+          channelName,
+          Imf::Slice(compType, ptrS, xStride, yStride));
+      }
+    }
+  }
+
+
+  void EXRSpectralImage::saveChannelSensitivities(
+    Imf::Header &exrHeader, const std::string &layerPrefix) const
+  {
+    if (channelSensitivities().size() > 0) {
+      for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
+        if (channelSensitivity(wl_idx).size() > 0) {
+          std::string channelName
+            = layerPrefix + getEmissiveChannelName(0, _wavelengths_nm[wl_idx]);
+
+          exrHeader.insert(
+            channelName,
+            channelSensitivity(wl_idx).getAttribute());
+        }
+      }
+    }
   }
 
 }   // namespace SEXR
