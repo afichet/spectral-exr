@@ -102,7 +102,7 @@ namespace SEXR
     static constexpr const char *CAMERA_RESPONSE_ATTR   = "cameraResponse";
     static constexpr const char *EXPOSURE_COMPENSATION_ATTR = "EV";
     static constexpr const char *POLARISATION_HANDEDNESS_ATTR
-      = "Polarisation handedness";
+      = "polarisationHandedness";
   };
 
 }   // namespace SEXR
