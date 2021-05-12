@@ -456,6 +456,45 @@ namespace SEXR
 
     Imf::FrameBuffer exrFrameBuffer;
 
+
+    // Write RGB version
+    const size_t xStrideRGB = sizeof(float) * 3;
+    const size_t yStrideRGB = xStrideRGB * width();
+
+    std::vector<std::vector<float>> rgbImages(1 + _children.size());
+
+    getRGBImage(rgbImages[0]);
+
+    const std::array<std::string, 3> rgbChannelsMain
+      = {"R", "G", "B"};
+
+    for (size_t c = 0; c < 3; c++) {
+      char *ptrRGB = (char *)(&rgbImages[0][c]);
+      exrChannels.insert(rgbChannelsMain[c], Imf::Channel(Imf::FLOAT));
+      exrFrameBuffer.insert(
+        rgbChannelsMain[c],
+        Imf::Slice(Imf::FLOAT, ptrRGB, xStrideRGB, yStrideRGB));
+    }
+
+    int i = 1;
+
+    for (std::pair<std::string, EXRSpectralImage *> el : _children) {
+      el.second->getRGBImage(rgbImages[i]);
+
+      const std::array<std::string, 3> rgbChannelsChild
+        = {el.first + ".R", el.first + ".G", el.first + ".B"};
+        
+      for (size_t c = 0; c < 3; c++) {
+        char *ptrRGB = (char *)(&rgbImages[i][c]);
+        exrChannels.insert(rgbChannelsChild[c], Imf::Channel(Imf::FLOAT));
+        exrFrameBuffer.insert(
+          rgbChannelsChild[c],
+          Imf::Slice(Imf::FLOAT, ptrRGB, xStrideRGB, yStrideRGB));
+      }
+
+      i++;
+    }
+
     // Main image
     saveLayers(exrFrameBuffer, exrChannels, "");
 
@@ -484,9 +523,9 @@ namespace SEXR
 
     saveChannelSensitivities(exrHeader, "");
 
-    for (std::pair<std::string, EXRSpectralImage *> el : _children) {
-      el.second->saveChannelSensitivities(exrHeader, el.first + ".");
-    }
+    // for (std::pair<std::string, EXRSpectralImage *> el : _children) {
+    //   el.second->saveChannelSensitivities(exrHeader, el.first + ".");
+    // }
 
     exrHeader.insert(EXPOSURE_COMPENSATION_ATTR, Imf::FloatAttribute(_ev));
 
@@ -524,7 +563,7 @@ namespace SEXR
   {
     const Imf::PixelType compType = Imf::FLOAT;
 
-    // // Write RGB version
+    // Write RGB version
     // std::vector<float> rgbImage;
     // getRGBImage(rgbImage);
 
@@ -564,11 +603,11 @@ namespace SEXR
         // Populate channel name
         const std::string channelName
           = layerPrefix + getReflectiveChannelName(_wavelengths_nm[wl_idx]);
-        exrChannels.insert(channelName, Imf::Channel(compType));
+        exrChannels.insert(channelName.c_str(), Imf::Channel(compType));
 
         char *ptrS = (char *)(&_reflectivePixelBuffer[wl_idx]);
         exrFrameBuffer.insert(
-          channelName,
+          channelName.c_str(),
           Imf::Slice(compType, ptrS, xStride, yStride));
       }
     }
