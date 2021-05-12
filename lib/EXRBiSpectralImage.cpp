@@ -302,11 +302,25 @@ namespace SEXR
     // -----------------------------------------------------------------------
 
     // Check if the version match
-    const Imf::StringAttribute *versionAttr 
+    const Imf::StringAttribute *versionAttr
       = exrHeader.findTypedAttribute<Imf::StringAttribute>(VERSION_ATTR);
-      
+
     if (versionAttr == nullptr || versionAttr->value() != "1.0") {
-      std::cout << "WARN: The version is different from the one expected by this library" << std::endl;
+      std::cout << "WARN: The version is different from the one expected by "
+                   "this library"
+                << std::endl;
+    }
+
+    // Units
+    const Imf::StringAttribute *emissiveUnitsAttr
+      = exrHeader.findTypedAttribute<Imf::StringAttribute>(EMISSIVE_UNITS_ATTR);
+
+    if (emissiveUnitsAttr != nullptr) {
+      if (emissiveUnitsAttr->value() != "W.m^2.sr^-1") {
+        std::cerr << "WARN: This unit is not supported. We are going to use "
+                     "W.m^2.sr^-1 instead"
+                  << std::endl;
+      }
     }
 
     // Lens transmission data
@@ -501,6 +515,13 @@ namespace SEXR
     exrHeader.insert(
       EXPOSURE_COMPENSATION_ATTR,
       Imf::StringAttribute(std::to_string(_ev)));
+
+    // Units
+    if (isEmissive()) {
+      exrHeader.insert(
+        EMISSIVE_UNITS_ATTR,
+        Imf::StringAttribute("W.m^2.sr^-1"));
+    }
 
     // Polarisation handedness
     if (isPolarised()) {

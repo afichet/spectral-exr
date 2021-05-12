@@ -110,8 +110,9 @@ namespace SEXR
     static std::string getReradiationChannelName(
       double wavelength_nm, double reradiation_wavelength_nm);
 
-    static constexpr const char *VERSION_ATTR           = "spectralLayoutVersion";
-    static constexpr const char *SPECTRUM_TYPE_ATTR     = "spectrumType";
+    static constexpr const char *VERSION_ATTR        = "spectralLayoutVersion";
+    static constexpr const char *SPECTRUM_TYPE_ATTR  = "spectrumType";
+    static constexpr const char *EMISSIVE_UNITS_ATTR = "emissiveUnits";
     static constexpr const char *LENS_TRANSMISSION_ATTR = "lensTransmission";
     static constexpr const char *CAMERA_RESPONSE_ATTR   = "cameraResponse";
     static constexpr const char *EXPOSURE_COMPENSATION_ATTR = "EV";
