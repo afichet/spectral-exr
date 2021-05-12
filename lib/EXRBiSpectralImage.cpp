@@ -316,9 +316,9 @@ namespace SEXR
       = exrHeader.findTypedAttribute<Imf::StringAttribute>(EMISSIVE_UNITS_ATTR);
 
     if (emissiveUnitsAttr != nullptr) {
-      if (emissiveUnitsAttr->value() != "W.m^2.sr^-1") {
+      if (emissiveUnitsAttr->value() != "W.m^-2.sr^-1") {
         std::cerr << "WARN: This unit is not supported. We are going to use "
-                     "W.m^2.sr^-1 instead"
+                     "W.m^-2.sr^-1 instead"
                   << std::endl;
       }
     }
@@ -520,7 +520,7 @@ namespace SEXR
     if (isEmissive()) {
       exrHeader.insert(
         EMISSIVE_UNITS_ATTR,
-        Imf::StringAttribute("W.m^2.sr^-1"));
+        Imf::StringAttribute("W.m^-2.sr^-1"));
     }
 
     // Polarisation handedness
