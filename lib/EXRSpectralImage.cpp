@@ -278,13 +278,13 @@ namespace SEXR
     }
 
     // Exposure compensation value
-    const Imf::StringAttribute *exposureCompensationAttr
-      = exrHeader.findTypedAttribute<Imf::StringAttribute>(
+    const Imf::FloatAttribute *exposureCompensationAttr
+      = exrHeader.findTypedAttribute<Imf::FloatAttribute>(
         EXPOSURE_COMPENSATION_ATTR);
 
     if (exposureCompensationAttr != nullptr) {
       try {
-        _ev = std::stof(exposureCompensationAttr->value());
+        _ev = exposureCompensationAttr->value();
       } catch (std::invalid_argument &e) {
         throw INCORRECT_FORMED_FILE;
       }
@@ -397,9 +397,7 @@ namespace SEXR
       }
     }
 
-    exrHeader.insert(
-      EXPOSURE_COMPENSATION_ATTR,
-      Imf::StringAttribute(std::to_string(_ev)));
+    exrHeader.insert(EXPOSURE_COMPENSATION_ATTR, Imf::FloatAttribute(_ev));
 
     // Units
     if (isEmissive()) {
