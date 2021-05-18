@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 
   // Load the CSV file
   const std::string numberRegex = " *(\\d*\\.?\\d*([Ee][+-]?\\d+)?) *";
-  const std::regex  e("^" + numberRegex + "," + numberRegex + "$");
+  const std::regex  e(numberRegex + "," + numberRegex);
 
   const std::string fileIn  = argv[1];
   const std::string fileOut = argv[3];
