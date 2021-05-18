@@ -32,22 +32,21 @@
 int main(int argc, char *argv[])
 {
   if (argc <= 4) {
-    std::cout
-      << "Usage:" << std::endl
-      << "------" << std::endl
-      << argv[0]
-      << " <exr_1> <exr_2> <parent_layer> <output_file> " << std::endl
-      << "Include spectral layers of an OpenEXR file into another."
-      << std::endl
-      << std::endl;
+    std::cout << "Usage:" << std::endl
+              << "------" << std::endl
+              << argv[0] << " <exr_1> <exr_2> <parent_layer> <output_file> "
+              << std::endl
+              << "Include spectral layers of an OpenEXR file into another."
+              << std::endl
+              << std::endl;
 
     return 0;
   }
 
-  const char* exr_1 = argv[1];
-  const char* exr_2 = argv[2];
-  const char* parentLayer = argv[3];
-  const char* outputFile = argv[4];
+  const char *exr_1       = argv[1];
+  const char *exr_2       = argv[2];
+  const char *parentLayer = argv[3];
+  const char *outputFile  = argv[4];
 
   SEXR::EXRSpectralImage spectralImage1(exr_1);
 

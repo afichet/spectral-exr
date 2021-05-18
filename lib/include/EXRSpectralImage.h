@@ -126,8 +126,8 @@ namespace SEXR
     std::map<std::string, EXRSpectralImage *> _children;
 
   public:
-    static constexpr const char *VERSION_ATTR       = "spectralLayoutVersion";
-    static constexpr const char *SPECTRUM_TYPE_ATTR = "spectrumType";
+    static constexpr const char *VERSION_ATTR        = "spectralLayoutVersion";
+    static constexpr const char *SPECTRUM_TYPE_ATTR  = "spectrumType";
     static constexpr const char *EMISSIVE_UNITS_ATTR = "emissiveUnits";
     static constexpr const char *LENS_TRANSMISSION_ATTR = "lensTransmission";
     static constexpr const char *CAMERA_RESPONSE_ATTR   = "cameraResponse";

@@ -214,22 +214,25 @@ namespace SEXR
     const Imf::StringAttribute *versionAttr
       = exrHeader.findTypedAttribute<Imf::StringAttribute>(VERSION_ATTR);
 
-    if (versionAttr == nullptr || versionAttr->value() != "1.0") {
+    if (
+      versionAttr == nullptr
+      || strcmp(versionAttr->value().c_str(), "1.0") != 0) {
       std::cerr << "WARN: The version is different from the one expected by "
-                   "this library"
+                   "this library or unspecified"
                 << std::endl;
     }
 
-    // Units
+    // Units (required for emissive images)
     const Imf::StringAttribute *emissiveUnitsAttr
       = exrHeader.findTypedAttribute<Imf::StringAttribute>(EMISSIVE_UNITS_ATTR);
 
-    if (emissiveUnitsAttr != nullptr) {
-      if (emissiveUnitsAttr->value() != "W.m^-2.sr^-1") {
-        std::cerr << "WARN: This unit is not supported. We are going to use "
-                     "W.m^-2.sr^-1 instead"
-                  << std::endl;
-      }
+    if (isEmissive() 
+    && (emissiveUnitsAttr == nullptr 
+      || strcmp(emissiveUnitsAttr->value().c_str(), "W.m^-2.sr^-1") != 0)) {
+      std::cerr << "WARN: This unit is not supported or unspecified. We are "
+                   "going to use "
+                   "W.m^-2.sr^-1 instead"
+                << std::endl;
     }
 
     // Lens transmission data
@@ -465,8 +468,7 @@ namespace SEXR
 
     getRGBImage(rgbImages[0]);
 
-    const std::array<std::string, 3> rgbChannelsMain
-      = {"R", "G", "B"};
+    const std::array<std::string, 3> rgbChannelsMain = {"R", "G", "B"};
 
     for (size_t c = 0; c < 3; c++) {
       char *ptrRGB = (char *)(&rgbImages[0][c]);
@@ -483,7 +485,7 @@ namespace SEXR
 
       const std::array<std::string, 3> rgbChannelsChild
         = {el.first + ".R", el.first + ".G", el.first + ".B"};
-        
+
       for (size_t c = 0; c < 3; c++) {
         char *ptrRGB = (char *)(&rgbImages[i][c]);
         exrChannels.insert(rgbChannelsChild[c], Imf::Channel(Imf::FLOAT));
