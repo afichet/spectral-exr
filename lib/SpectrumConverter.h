@@ -30,6 +30,7 @@
 
 #include <array>
 #include <vector>
+#include <cstddef>
 
 namespace SEXR
 {
