@@ -1,30 +1,39 @@
 /**
- * Copyright (c) 2020 Alban Fichet, Romain Pacanowski, Alexander Wilkie
+ * Copyright (c) 2020 - 2021
+ * Alban Fichet, Romain Pacanowski, Alexander Wilkie
+ * Institut d'Optique Graduate School, CNRS - Universite de Bordeaux,
+ * Inria, Charles University
  * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *  * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above
+ * copyright notice, this list of conditions and the following
+ * disclaimer in the documentation and/or other materials provided
+ * with the distribution.
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *  * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *  * Neither the name of %ORGANIZATION% nor the names of its contributors may be
- * used to endorse or promote products derived from this software without specific
- * prior written permission.
+ *  * Neither the name of Institut d'Optique Graduate School, CNRS -
+ * Universite de Bordeaux, Inria, Charles University nor the names of
+ * its contributors may be used to endorse or promote products derived
+ * from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 
 #pragma once
 
@@ -79,14 +88,16 @@ namespace SEXR
         virtual void save(const std::string &filename) const = 0;
 
         /**
-         * Export each channel value in an individual EXR image.
-         * For each spectral and bispectral channel, an individual image
-         * will be created in the folder pointed by path. The folder must
-         * exists prior to the call of this method.
+         * Export each channel value in an individual EXR image.  For
+         * each spectral and bispectral channel, an individual image
+         * will be created in the folder pointed by path. The folder
+         * must exists prior to the call of this method.
+         *
          *  - Reflective / Transmissive channels are prefixed with "T - "
          *  - Emissive channels are prefixed with "S - "
-         * Then, the wavelength in nanometer is appended with "nm" unit
-         * specified.
+         *
+         * Then, the wavelength in nanometer is appended with "nm"
+         * unit specified.
          *
          * @param path folder path where to export the images.
          */
@@ -121,7 +132,8 @@ namespace SEXR
         const SpectrumAttribute &lensTransmission() const;
 
         /**
-         * Sets a "filter" transmissivity curve for a specific wavelength.
+         * Sets a "filter" transmissivity curve for a specific
+         * wavelength.
          *
          * @param wl_idx wavelenght index which the filter corresponds to.
          * @param wavelengths_nm wavelengths of the transmissive spectrum.
@@ -143,12 +155,14 @@ namespace SEXR
         const SpectrumAttribute &channelSensitivity(size_t wl_idx) const;
 
         /**
-         * Sets the exposure compensation values to use for the RGB representation.
+         * Sets the exposure compensation values to use for the RGB
+         * representation.
          */
         void setExposureCompensationValue(float ev);
 
         /**
-         * Gets the exposure compensation values used by the RGB representation.
+         * Gets the exposure compensation values used by the RGB
+         * representation.
          */
         const float &exposureCompensationValue() const;
 
@@ -166,8 +180,8 @@ namespace SEXR
         // Access the reflective part
 
         /**
-         * Gives a reference to the reflective element at location x, y
-         * for given a wavelength index.
+         * Gives a reference to the reflective element at location x,
+         * y for given a wavelength index.
          *
          * @param x column coordinate in the image in pixels (0 on left).
          * @param y row coordinate in the image in pixels (0 on top).
@@ -208,8 +222,8 @@ namespace SEXR
         getReflectiveValue(size_t x, size_t y, size_t wavelength_idx) const;
 
         /**
-         * Gets the wavelength value in nanometer from a specific wavelength
-         * index.
+         * Gets the wavelength value in nanometer from a specific
+         * wavelength index.
          */
         const float &wavelength_nm(size_t wl_idx) const;
 
@@ -223,8 +237,8 @@ namespace SEXR
         size_t nSpectralBands() const;
 
         /**
-         * Gets the number of Stokes components. 1 for a non polarised image,
-         * 4 for a polarised image.
+         * Gets the number of Stokes components. 1 for a non polarised
+         * image, 4 for a polarised image.
          */
         size_t nStokesComponents() const;
 

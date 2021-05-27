@@ -1,30 +1,39 @@
 /**
- * Copyright (c) 2020 Alban Fichet, Romain Pacanowski, Alexander Wilkie
+ * Copyright (c) 2020 - 2021
+ * Alban Fichet, Romain Pacanowski, Alexander Wilkie
+ * Institut d'Optique Graduate School, CNRS - Universite de Bordeaux,
+ * Inria, Charles University
  * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *  * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above
+ * copyright notice, this list of conditions and the following
+ * disclaimer in the documentation and/or other materials provided
+ * with the distribution.
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *  * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *  * Neither the name of %ORGANIZATION% nor the names of its contributors may be
- * used to endorse or promote products derived from this software without specific
- * prior written permission.
+ *  * Neither the name of Institut d'Optique Graduate School, CNRS -
+ * Universite de Bordeaux, Inria, Charles University nor the names of
+ * its contributors may be used to endorse or promote products derived
+ * from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 
 #include "SpectrumConverter.h"
 #include "Util.h"
@@ -239,7 +248,8 @@ namespace SEXR
               = wl_i_a - _illuminantFirstWavelenght_nm;
             size_t idx_illu_end = wl_i_b - _illuminantFirstWavelenght_nm;
 
-            // On last intervall we need to include the last wavelength of the spectrum
+            // On last intervall we need to include the last
+            // wavelength of the spectrum
             if (wl_idx_i == wavelengths_nm.size() - 2) {
                 idx_illu_end = idx_illu_end + 1;
             }
@@ -272,7 +282,8 @@ namespace SEXR
                 const size_t idx_cmf_start = cmfWavelengthIndex(wl_o_a);
                 size_t       idx_cmf_end   = cmfWavelengthIndex(wl_o_b);
 
-                // On last intervall we need to include the last wavelength of the spectrum
+                // On last intervall we need to include the last
+                // wavelength of the spectrum
                 if (wl_idx_o == wavelengths_nm.size() - 2) {
                     idx_cmf_end = idx_cmf_end + 1;
                 }
@@ -447,7 +458,8 @@ namespace SEXR
             const size_t idx_cmf_start = cmfWavelengthIndex(wl_a);
             size_t       idx_cmf_end   = cmfWavelengthIndex(wl_b);
 
-            // On last intervall we need to include the last wavelength of the spectrum
+            // On last intervall we need to include the last
+            // wavelength of the spectrum
             if (idx_value == wavelengths_nm.size() - 2) {
                 idx_cmf_end = idx_cmf_end + 1;
             }
@@ -525,7 +537,8 @@ namespace SEXR
             const size_t idx_curve_start = cmfWavelengthIndex(wl_a);
             size_t       idx_curve_end   = cmfWavelengthIndex(wl_b);
 
-            // On last intervall we need to include the last wavelength of the spectrum
+            // On last intervall we need to include the last
+            // wavelength of the spectrum
             if (idx_value == wavelengths_nm.size() - 2) {
                 idx_curve_end = idx_curve_end + 1;
             }
