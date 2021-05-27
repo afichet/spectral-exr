@@ -30,44 +30,46 @@
 
 namespace SEXR
 {
-  enum SpectrumType
-  {
-    UNDEFINED  = 0,                // 0b0000
-    REFLECTIVE = 2,                // 0b0001
-    EMISSIVE   = 4,                // 0b0010
-    BISPECTRAL = 8 | REFLECTIVE,   // 0b0101
-    POLARISED  = 16                // 0b1000
-  };
+    enum SpectrumType
+    {
+        UNDEFINED  = 0,                // 0b0000
+        REFLECTIVE = 2,                // 0b0001
+        EMISSIVE   = 4,                // 0b0010
+        BISPECTRAL = 8 | REFLECTIVE,   // 0b0101
+        POLARISED  = 16                // 0b1000
+    };
 
 
-  inline SpectrumType operator|(SpectrumType a, SpectrumType b)
-  {
-    return static_cast<SpectrumType>(static_cast<int>(a) | static_cast<int>(b));
-  }
+    inline SpectrumType operator|(SpectrumType a, SpectrumType b)
+    {
+        return static_cast<SpectrumType>(
+          static_cast<int>(a) | static_cast<int>(b));
+    }
 
-  inline SpectrumType operator^(SpectrumType a, SpectrumType b)
-  {
-    return static_cast<SpectrumType>(static_cast<int>(a) ^ static_cast<int>(b));
-  }
+    inline SpectrumType operator^(SpectrumType a, SpectrumType b)
+    {
+        return static_cast<SpectrumType>(
+          static_cast<int>(a) ^ static_cast<int>(b));
+    }
 
-  inline bool isReflectiveSpectrum(SpectrumType s)
-  {
-    return (s & REFLECTIVE) == REFLECTIVE;
-  }
+    inline bool isReflectiveSpectrum(SpectrumType s)
+    {
+        return (s & REFLECTIVE) == REFLECTIVE;
+    }
 
-  inline bool isEmissiveSpectrum(SpectrumType s)
-  {
-    return (s & EMISSIVE) == EMISSIVE;
-  }
+    inline bool isEmissiveSpectrum(SpectrumType s)
+    {
+        return (s & EMISSIVE) == EMISSIVE;
+    }
 
-  inline bool isPolarisedSpectrum(SpectrumType s)
-  {
-    return (s & POLARISED) == POLARISED;
-  }
+    inline bool isPolarisedSpectrum(SpectrumType s)
+    {
+        return (s & POLARISED) == POLARISED;
+    }
 
-  inline bool isBispectralSpectrum(SpectrumType s)
-  {
-    return (s & BISPECTRAL) == BISPECTRAL;
-  }
+    inline bool isBispectralSpectrum(SpectrumType s)
+    {
+        return (s & BISPECTRAL) == BISPECTRAL;
+    }
 
 }   // namespace SEXR

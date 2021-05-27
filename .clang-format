@@ -69,7 +69,7 @@ IncludeCategories:
 IncludeBlocks: Regroup
 IndentCaseLabels: true
 IndentPPDirectives: AfterHash
-IndentWidth: 2
+IndentWidth: 4
 IndentWrappedFunctionNames: false
 KeepEmptyLinesAtTheStartOfBlocks: false
 MaxEmptyLinesToKeep: 4

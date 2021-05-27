@@ -33,91 +33,92 @@
 
 namespace SEXR
 {
-  class EXRBiSpectralImage: public BiSpectralImage
-  {
-  public:
-    /**
-     * Creates a new spectral or bispectral image.
-     *
-     * @param width width of the image.
-     * @param height height of the image.
-     * @param wavelengths_nm wavlengths in nanometers of the image.
-     * @param type spectrum type represented in the image.
-     */
-    EXRBiSpectralImage(
-      size_t                    width          = 0,
-      size_t                    height         = 0,
-      const std::vector<float> &wavelengths_nm = std::vector<float>(),
-      SpectrumType              type           = REFLECTIVE,
-      PolarisationHandedness    handedness     = RIGHT_HANDED);
+    class EXRBiSpectralImage: public BiSpectralImage
+    {
+      public:
+        /**
+         * Creates a new spectral or bispectral image.
+         *
+         * @param width width of the image.
+         * @param height height of the image.
+         * @param wavelengths_nm wavlengths in nanometers of the image.
+         * @param type spectrum type represented in the image.
+         */
+        EXRBiSpectralImage(
+          size_t                    width          = 0,
+          size_t                    height         = 0,
+          const std::vector<float> &wavelengths_nm = std::vector<float>(),
+          SpectrumType              type           = REFLECTIVE,
+          PolarisationHandedness    handedness     = RIGHT_HANDED);
 
-    /**
-     * Loads a spectral or bispectral image from an EXR file.
-     *
-     * @param filename path to the image to load.
-     */
-    EXRBiSpectralImage(const std::string &filename);
+        /**
+         * Loads a spectral or bispectral image from an EXR file.
+         *
+         * @param filename path to the image to load.
+         */
+        EXRBiSpectralImage(const std::string &filename);
 
-    /**
-     * Saves the bispectral image to an EXR file.
-     *
-     * @param filename path where the image shall be saved.
-     */
-    void save(const std::string &filename) const;
+        /**
+         * Saves the bispectral image to an EXR file.
+         *
+         * @param filename path where the image shall be saved.
+         */
+        void save(const std::string &filename) const;
 
-    static SpectrumType channelType(
-      const std::string &channelName,
-      int &              polarisationComponent,
-      double &           wavelengths_nm,
-      double &           reradiation_wavelength_nm);
+        static SpectrumType channelType(
+          const std::string &channelName,
+          int &              polarisationComponent,
+          double &           wavelengths_nm,
+          double &           reradiation_wavelength_nm);
 
-    /**
-     * Gets the channel name used in the EXR file for a specific
-     * emissive component.
-     *
-     * @param stokesComponent index of the Stokes component (0-3).
-     * @param wavelength_nm wavelength in nanometers.
-     *
-     * @returns std::string containing the emissive channel name
-     * for the given Stokes component at a specific wavelength.
-     */
-    static std::string
-    getEmissiveChannelName(int stokesComponent, double wavelength_nm);
+        /**
+         * Gets the channel name used in the EXR file for a specific
+         * emissive component.
+         *
+         * @param stokesComponent index of the Stokes component (0-3).
+         * @param wavelength_nm wavelength in nanometers.
+         *
+         * @returns std::string containing the emissive channel name
+         * for the given Stokes component at a specific wavelength.
+         */
+        static std::string
+        getEmissiveChannelName(int stokesComponent, double wavelength_nm);
 
-    /**
-     * Gets the channel name used in the EXR file for a specific
-     * non reradiating component.
-     *
-     * @param wavelength_nm wavelength in nanometers.
-     *
-     * @returns std::string containing the reflective channel name
-     * at a specific wavelength.
-     */
-    static std::string getReflectiveChannelName(double wavelength_nm);
+        /**
+         * Gets the channel name used in the EXR file for a specific
+         * non reradiating component.
+         *
+         * @param wavelength_nm wavelength in nanometers.
+         *
+         * @returns std::string containing the reflective channel name
+         * at a specific wavelength.
+         */
+        static std::string getReflectiveChannelName(double wavelength_nm);
 
-    /**
-     * Gets the channel name used in the EXR file for a specific
-     * reradiating component.
-     *
-     * @param wavelength_nm radiating wavelength in nanometers.
-     * @param reradiation_wavelength_nm reemissive wavelength in
-     * nanometers.
-     *
-     * @returns std::string containing the reflective channel name
-     * at a specific radiating wavelength to a specific reemission
-     * band.
-     */
-    static std::string getReradiationChannelName(
-      double wavelength_nm, double reradiation_wavelength_nm);
+        /**
+         * Gets the channel name used in the EXR file for a specific
+         * reradiating component.
+         *
+         * @param wavelength_nm radiating wavelength in nanometers.
+         * @param reradiation_wavelength_nm reemissive wavelength in
+         * nanometers.
+         *
+         * @returns std::string containing the reflective channel name
+         * at a specific radiating wavelength to a specific reemission
+         * band.
+         */
+        static std::string getReradiationChannelName(
+          double wavelength_nm, double reradiation_wavelength_nm);
 
-    static constexpr const char *VERSION_ATTR        = "spectralLayoutVersion";
-    static constexpr const char *SPECTRUM_TYPE_ATTR  = "spectrumType";
-    static constexpr const char *EMISSIVE_UNITS_ATTR = "emissiveUnits";
-    static constexpr const char *LENS_TRANSMISSION_ATTR = "lensTransmission";
-    static constexpr const char *CAMERA_RESPONSE_ATTR   = "cameraResponse";
-    static constexpr const char *EXPOSURE_COMPENSATION_ATTR = "EV";
-    static constexpr const char *POLARISATION_HANDEDNESS_ATTR
-      = "polarisationHandedness";
-  };
+        static constexpr const char *VERSION_ATTR = "spectralLayoutVersion";
+        static constexpr const char *SPECTRUM_TYPE_ATTR  = "spectrumType";
+        static constexpr const char *EMISSIVE_UNITS_ATTR = "emissiveUnits";
+        static constexpr const char *LENS_TRANSMISSION_ATTR
+          = "lensTransmission";
+        static constexpr const char *CAMERA_RESPONSE_ATTR = "cameraResponse";
+        static constexpr const char *EXPOSURE_COMPENSATION_ATTR = "EV";
+        static constexpr const char *POLARISATION_HANDEDNESS_ATTR
+          = "polarisationHandedness";
+    };
 
 }   // namespace SEXR
