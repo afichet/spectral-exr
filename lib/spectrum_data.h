@@ -34,7 +34,6 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #pragma once
 
 namespace SEXR
