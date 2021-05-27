@@ -261,19 +261,21 @@ namespace SEXR
 
     for (size_t s = 0; s < nStokesComponents(); s++) {
       for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
-        char *ptrS = (char *)(&_emissivePixelBuffers[s][wl_idx]);
-        exrFrameBuffer.insert(
-          wavelengths_nm_S[s][wl_idx].second,
-          Imf::Slice(compType, ptrS, xStride, yStride));
+        char *     ptrS = (char *)(&_emissivePixelBuffers[s][wl_idx]);
+        Imf::Slice slice
+          = Imf::Slice::Make(compType, ptrS, exrDataWindow, xStride, yStride);
+
+        exrFrameBuffer.insert(wavelengths_nm_S[s][wl_idx].second, slice);
       }
     }
 
     if (isReflective()) {
       for (size_t wl_idx = 0; wl_idx < nSpectralBands(); wl_idx++) {
-        char *ptrS = (char *)(&_reflectivePixelBuffer[wl_idx]);
-        exrFrameBuffer.insert(
-          wavelengths_nm_diagonal[wl_idx].second,
-          Imf::Slice(compType, ptrS, xStride, yStride));
+        char *     ptrS = (char *)(&_reflectivePixelBuffer[wl_idx]);
+        Imf::Slice slice
+          = Imf::Slice::Make(compType, ptrS, exrDataWindow, xStride, yStride);
+
+        exrFrameBuffer.insert(wavelengths_nm_diagonal[wl_idx].second, slice);
       }
 
       if (isBispectral()) {
@@ -282,14 +284,17 @@ namespace SEXR
         const size_t yStrideReradiation = xStrideReradiation * width();
 
         for (size_t rr = 0; rr < reradiationSize(); rr++) {
-          char *framebuffer = (char *)(&_reradiation[rr]);
+          char *     framebuffer = (char *)(&_reradiation[rr]);
+          Imf::Slice slice       = Imf::Slice::Make(
+            compType,
+            framebuffer,
+            exrDataWindow,
+            xStrideReradiation,
+            yStrideReradiation);
+
           exrFrameBuffer.insert(
             reradiation_wavelengths_nm[reradiationSize() - rr - 1].second,
-            Imf::Slice(
-              compType,
-              framebuffer,
-              xStrideReradiation,
-              yStrideReradiation));
+            slice);
         }
       }
     }
