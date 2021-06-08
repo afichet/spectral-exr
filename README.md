@@ -1,8 +1,19 @@
 # OpenEXR Spectral Image
 
-This is an example code for reading and
-writing OpenEXR spectral images. The main code is placed in `lib`
-folder.
+This is an example code for reading and writing OpenEXR spectral
+images.
+
+Our article [*An OpenEXR Layout for Spectral
+Images*](https://cgg.mff.cuni.cz/publications/an-openexr-layout-for-spectral-images/)
+to be published in the [Journal of Computer Graphics
+Techniques](http://jcgt.org) uses this code as supplemental
+material. The article also provides an extensive description of the
+format.
+
+You may also find supplemental example spectral images usefull: [ZIP
+Archive](https://cgg.mff.cuni.cz/wp-content/uploads/2021/06/jcgt_2021_spectral_exr_sample_images.zip).
+
+The main code is placed in `lib` folder.
 
 ## Compilation
 
