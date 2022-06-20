@@ -1,19 +1,18 @@
 # OpenEXR Spectral Image
 
-This is an example code for reading and writing OpenEXR spectral
-images.
+This repository contains the supporting code to read and write OpenEXR spectral images.
 
-Our article [*An OpenEXR Layout for Spectral
-Images*](https://cgg.mff.cuni.cz/publications/an-openexr-layout-for-spectral-images/)
-to be published in the [Journal of Computer Graphics
-Techniques](http://jcgt.org) uses this code as supplemental
-material. The article also provides an extensive description of the
-format.
+Our article [*An OpenEXR Layout for Spectral Images*](https://jcgt.org/published/0010/03/01/) published in the [Journal of Computer Graphics Techniques](http://jcgt.org) provides a description of the layout.
 
-You may also find supplemental example spectral images usefull: [ZIP
-Archive](https://cgg.mff.cuni.cz/wp-content/uploads/2021/06/jcgt_2021_spectral_exr_sample_images.zip).
+You may also find sample spectral images useful: [ZIP Archive](https://jcgt.org/published/0010/03/01/sample-images.zip).
 
-The main code is placed in `lib` folder.
+To load OpenEXR spectral image, you can use [Spectral Viewer](https://mrf-devteam.gitlab.io/spectral-viewer/).
+
+## Content
+
+- `lib` contains the main C++ code.
+- `app` contains sample C++ applications using the provided C++ library.
+- `python` contains a Python example to load spectral OpenEXR files using [OpenImageIO](https://openimageio.org/).
 
 ## Compilation
 
